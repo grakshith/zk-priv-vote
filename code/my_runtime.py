@@ -252,26 +252,27 @@ class LinComb:
         return self.__divmod__(other)[0]
 
     def __mod__(self, other):
-        if other&(other-1)==0:
-            # this is faster for powers of two
-            return LinComb.from_bits(self.to_bits()[:other.bit_length()-1])
+        # if other.__and__(other-1)==0:
+        #     # this is faster for powers of two
+        #     return LinComb.from_bits(self.to_bits()[:other.bit_length()-1])
         
         return self.__divmod__(other)[1]
         
     def __divmod__(self, divisor):
         """ Division by public value """
         
-        if not is_base_value(divisor): return NotImplemented
+        # if not is_base_value(divisor): return NotImplemented
         
-        if divisor==0: raise ValueError("division by zero")
+        if divisor.value==0: raise ValueError("division by zero")
         
-        quo = PrivVal(self.value//divisor)
-        rem = PrivVal(self.value-quo.value*divisor)
+        quo = PrivVal(self.value//divisor.value)
+        rem = PrivVal(self.value-quo.value*divisor.value)
  
-        rem.assert_positive(divisor.bit_length())
-        if divisor&(divisor-1)!=0: rem.assert_lt(divisor) # not needed for powers of two
+        rem.assert_positive(divisor.value.bit_length())
+        # if divisor&(divisor-1)!=0: 
+        rem.assert_lt(divisor.value) # not needed for powers of two
         quo.assert_positive()
-        (self-divisor*quo-rem).assert_zero()
+        (self-divisor.value*quo-rem).assert_zero()
         
         return (quo,rem)
     
