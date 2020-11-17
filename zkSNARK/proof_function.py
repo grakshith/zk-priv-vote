@@ -31,6 +31,19 @@ def comparisons(x):
 	return x-1 + comparisons(x-1)
 
 @snark
+def checkEqual(x, y):
+	_ = BranchingValues()
+
+	r1 = (x == y)
+	if _if(r1):
+		_.x = 1
+	if _else():
+		_.x = 0
+	_endif()
+
+	return _.x
+
+@snark
 def votes(x, y):
 	"""
 	Function to prove that candidate got most votes
@@ -64,7 +77,6 @@ def votes(x, y):
 	numComparisons = comparisons(len(y))
 	val = 0
 	_.v2 = 0
-	_.tempVal = 0
 
 	# #TODO: The ifs inside for are causing unreachable code, and _breakif doesn't seem to work
 	# for i in _range(0, len(y)-1, max = len(y)-1):
@@ -80,21 +92,15 @@ def votes(x, y):
 	#Inefficient code with sum instead of breaking
 	for i in _range(len(y)-1, max = len(y)-1):
 		for j in _range(i+1, len(y), max = len(y)):
-			print(y[i], y[j])
-			_.tempVal += tuple_compare(y[i], y[j])
+			# print(y[i], y[j])
+			val += tuple_compare(y[i], y[j])
 		_endfor()
 	_endfor()
 	print('out')
-	print(numComparisons, _.tempVal)
-	
-	r1 = (numComparisons == _.tempVal)
+	print(numComparisons, val)
 
-	#TODO: This is also unreachable?
-	if _if(r1):
-		_.v2 = 1
-	if _else():
-		_.v2 = 0
-	_endif()
+	_.v2 = checkEqual(numComparisons, val)
+
 
 
 
