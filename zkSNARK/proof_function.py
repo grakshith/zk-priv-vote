@@ -23,12 +23,12 @@ from tuple_compare import tuple_compare
 #     return _.x
 
 
-@snark
-def comparisons(x):
-	print(x)
-	if x.value == 1 or x.value == 0:
-		return 0
-	return x-1 + comparisons(x-1)
+# @snark
+# def comparisons(x):
+# 	print(x)
+# 	if x.value == 1 or x.value == 0:
+# 		return 0
+# 	return x-1 + comparisons(x-1)
 
 @snark
 def checkEqual(x, y):
@@ -74,7 +74,7 @@ def votes(x, y):
 
 	#CHECK FOR DUPLICATES
 
-	numComparisons = comparisons(len(y))
+	# numComparisons = comparisons(len(y))
 	val = 0
 	_.v2 = 0
 
@@ -96,10 +96,8 @@ def votes(x, y):
 			val += tuple_compare(y[i], y[j])
 		_endfor()
 	_endfor()
-	print('out')
-	print(numComparisons, val)
 
-	_.v2 = checkEqual(numComparisons, val)
+	_.v2 = checkEqual(0, val)
 
 
 
@@ -128,12 +126,16 @@ def votes(x, y):
 	print(_.v1*_.v2*_.v3)
 	return _.v1*_.v2*_.v3
 
-#Divisible
-x = [96, 5]
-y = [(1,2),(3,4),(1,2), (2,3)]
+# #Divisible
+# x = [96, 5]
+# y = [(1,2),(3,4),(1,2)]
 
 # #Not divisible
 # x = [100, 5]
 # y = [(1,2),(3,4),(1,2)]
+
+#Divisible
+x = [96, 5]
+y = [(1,1),(3,4),(2,2)]
 
 votes(x, y)
