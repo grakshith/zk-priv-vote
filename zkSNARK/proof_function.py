@@ -22,27 +22,6 @@ def tuple_compare(x, y):
 
     return _.x
 
-@snark
-def checkVotes(x, y):
-
-	prodPuzzles = x[0]
-	numVoters = x[1]
-	voteFactors = y
-
-
-	_ = BranchingValues()
-
-
-	#check number of votes
-	# r1 = (len(y) > numVoters//PubVal(2))
-	r1 = (len(y) > numVoters//2)
-	if _if(r1):
-		_.x = 1					
-	if _else():
-		_.x = 0
-	_endif()
-
-	return _.x
 
 @snark
 def comparisons(x):
