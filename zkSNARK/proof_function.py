@@ -2,25 +2,25 @@ import sys
 
 from pysnark.runtime import PrivVal, PubVal, snark
 from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
-
+from tuple_compare import tuple_compare
 # from pysnark.my_runtime import snark
 
-@snark
-def tuple_compare(x, y):
-    _ = BranchingValues()
-    r1 = (x[0] == y[0])
-    r2 = (x[1] == y[1])
-    if _if(r1):
-        if _if(r2):
-            _.x = 0
-        if _else():
-            _.x = 1
-        _endif()
-    if _else():
-        _.x = 1
-    _endif()
-
-    return _.x
+# @snark
+# def tuple_compare(x, y):
+#     _ = BranchingValues()
+#     r1 = (x[0] == y[0])
+#     r2 = (x[1] == y[1])
+#     if _if(r1):
+#         if _if(r2):
+#             _.x = 0
+#         if _else():
+#             _.x = 1
+#         _endif()
+#     if _else():
+#         _.x = 1
+#     _endif()
+#
+#     return _.x
 
 
 @snark
@@ -67,13 +67,13 @@ def votes(x, y):
 	_.v1 = 0
 	r1 = (len(y) > numVoters//2)
 	if _if(r1):
-		_.v1 = 1					
+		_.v1 = 1
 	_endif()
 
 
-	
+
 	#CHECK FOR DUPLICATES
-	
+
 	numComparisons = comparisons(len(y))
 	val = 0
 	_.v2 = 0
@@ -112,7 +112,7 @@ def votes(x, y):
 		prod *= y[i][0]*y[i][1]
 
 	#Manually computing remainder because my_runtime broke the branching
-	if prod.value==0: 
+	if prod.value==0:
 		raise ValueError("division by zero")
 	quo = PrivVal(prodPuzzles.value//prod.value)
 	rem = PrivVal(prodPuzzles.value-quo.value*prod.value)
@@ -127,7 +127,7 @@ def votes(x, y):
 
 	print(_.v1*_.v2*_.v3)
 	return _.v1*_.v2*_.v3
-	
+
 #Divisible
 x = [96, 5]
 y = [(1,2),(3,4),(1,2), (2,3)]
