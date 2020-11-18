@@ -31,7 +31,30 @@ from tuple_compare import tuple_compare
 # 	return x-1 + comparisons(x-1)
 
 @snark
+def checkOnes(x, y):
+	"""
+	Checks if any of the factors in y = 1
+	"""
+	_ = BranchingValues()
+
+	_.x = 1
+
+	for i in _range(len(y)):
+		if _if(y[i][0] == 1):
+			_.x = 0
+		_endif()
+		if _if(y[i][1] == 1):
+			_.x = 0
+		_endif()
+	_endfor()
+
+	return _.x
+
+@snark
 def checkEqual(x, y):
+	"""
+	Checks if x(pubVal) and y(PubVal) are equal
+	"""
 	_ = BranchingValues()
 
 	r1 = (x == y)
@@ -71,10 +94,8 @@ def votes(x, y):
 	_endif()
 
 
-
 	#CHECK FOR DUPLICATES
 
-	# numComparisons = comparisons(len(y))
 	val = 0
 	_.v2 = 0
 
@@ -123,8 +144,13 @@ def votes(x, y):
 		_.v3 = 1
 	_endif()
 
-	print(_.v1*_.v2*_.v3)
-	return _.v1*_.v2*_.v3
+
+	#CHECK FOR FACTORS WHICH ARE 1
+	_.v4 = checkOnes(x, y)
+
+	print('v4', _.v4)
+	print(_.v1*_.v2*_.v3*_.v4)
+	return _.v1*_.v2*_.v3*_.v4
 
 # #Divisible
 # x = [96, 5]
@@ -137,5 +163,9 @@ def votes(x, y):
 #Divisible
 x = [96, 5]
 y = [(1,1),(3,4),(2,2)]
+
+# # Divisible
+# x = [96, 5]
+# y = [(3,3),(3,4),(2,2)]
 
 votes(x, y)
