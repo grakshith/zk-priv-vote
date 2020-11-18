@@ -1,8 +1,11 @@
 import sys
 
-from pysnark.runtime import PrivVal, PubVal, snark
+from pysnark.runtime import PrivVal, PubVal, snark, ignore_errors
 from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
 from tuple_compare import tuple_compare
+
+
+ignore_errors(True)
 # from pysnark.my_runtime import snark
 
 # @snark
@@ -118,7 +121,7 @@ def votes(x, y):
 		_endfor()
 	_endfor()
 
-	_.v2 = checkEqual(0, val)
+	_.v2 = PrivVal(checkEqual(0, val))
 
 
 
@@ -146,11 +149,19 @@ def votes(x, y):
 
 
 	#CHECK FOR FACTORS WHICH ARE 1
-	_.v4 = checkOnes(x, y)
+	_.v4 = PrivVal(checkOnes(x, y))
 
 	print('v4', _.v4)
 	print(_.v1*_.v2*_.v3*_.v4)
-	return _.v1*_.v2*_.v3*_.v4
+	# return _.v1*_.v2*_.v3*_.v4
+	# _.v1.assert_nonzero()
+	# _.v2.assert_nonzero()
+	# _.v3.assert_nonzero()
+	# _.v4.assert_nonzero()
+
+	v = _.v1*_.v2*_.v3*_.v4
+
+	v.assert_nonzero()
 
 # #Divisible
 # x = [96, 5]
@@ -160,12 +171,18 @@ def votes(x, y):
 # x = [100, 5]
 # y = [(1,2),(3,4),(1,2)]
 
-#Divisible
-x = [96, 5]
-y = [(1,1),(3,4),(2,2)]
+# #Divisible
+# x = [96, 5]
+# y = [(1,1),(3,4),(2,2)]
 
 # # Divisible
 # x = [96, 5]
 # y = [(3,3),(3,4),(2,2)]
+
+# Divisible
+x = [96, 3]
+y = [(2,4),(2,2)]
+
+
 
 votes(x, y)
