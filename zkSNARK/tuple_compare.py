@@ -5,6 +5,7 @@ from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, 
 
 
 
+# @snark
 def tuple_compare(x, y):
     _ = BranchingValues()
     r1 = (x[0] == y[0])
