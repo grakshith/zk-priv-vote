@@ -4,7 +4,7 @@ from pysnark.runtime import PrivVal, PubVal, snark
 from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
 
 
-@snark
+
 def tuple_compare(x, y):
     _ = BranchingValues()
     r1 = (x[0] == y[0])
