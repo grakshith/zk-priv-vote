@@ -5,6 +5,7 @@ from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, 
 from tuple_compare import tuple_compare
 from primes import generate_prime_number
 import time
+import statistics
 
 faulthandler.enable()
 ignore_errors(True)
@@ -86,7 +87,7 @@ def votes(x, y):
 	#TODO: y is currently public too because my_runtime broke the branching
 	#That needs to be checked
 
-	start_time = time.proces_time()
+	start_time = time.process_time()
 	prodPuzzles = x[0]
 	numVoters = x[1]
 	voteFactors = y
@@ -155,15 +156,15 @@ def votes(x, y):
 	#CHECK FOR FACTORS WHICH ARE 1
 	_.v4 = checkOnes(x, y)
 
-	print('v4', _.v4)
-	print(_.v1*_.v2*_.v3*_.v4)
+	# print('v4', _.v4)
+	# print(_.v1*_.v2*_.v3*_.v4)
 
 
 	v = _.v1*_.v2*_.v3*_.v4
 
 	v.assert_nonzero()
 	end_time = time.process_time()
-	print("Votes CPU time: "+str(end_time - start_time))
+	return end_time - start_time
 
 # #Divisible
 # x = [96, 5]
@@ -186,25 +187,51 @@ def votes(x, y):
 # y = [(2,4),(2,2)]
 
 
-def generate_inputs(numVoters):
+def generate_inputs(numVoters, param):
 	start_time = time.process_time()
 	y = []
 	prodPuzzles = 1
 	unique_set = set()
 	while(len(unique_set)!=numVoters):
-		unique_set.add((generate_prime_number(8), generate_prime_number(16)))
+		unique_set.add((generate_prime_number(8), generate_prime_number(param)))
 	for i in range(numVoters):
-		print(i)
+		# print(i)
 		y.append(unique_set.pop())
 		prodPuzzles *= y[i][0]*y[i][1]
-	print('out')
+	# print('out')
 	x = [prodPuzzles, numVoters]
 	end_time = time.process_time()
-	print("Generate inputs CPU time: "+str(end_time - start_time))
-	return x, y
+	# print("Generate inputs CPU time: "+str(end_time - start_time))
+	return x, y, (end_time - start_time)
 
-x, y = generate_inputs(15)
-print('out2')
-print(x)
-print(y)
-votes(x, y)
+# x, y = generate_inputs(15)
+# print('out2')
+# print(x)
+# print(y)
+# votes(x, y)
+
+
+for i in range(8, 17, 2):
+	print("Params (8, "+ str(i) + ", 10)")
+	x, y, cpu_time = generate_inputs(10, i)
+	print("CPU time for input generation: "+str(round(cpu_time*1000, 2)))
+
+	cpu_times = []
+	for j in range(10):
+		votes_cpu_time = votes(x, y)
+		cpu_times.append(votes_cpu_time)
+	mean_cpu_time = statistics.mean(cpu_times)
+	print("CPU time for vote function: "+str(round(mean_cpu_time*1000, 2)))
+
+
+for i in range(2, 11, 2):
+	print("Params (8, 8, "+ str(i) + ")")
+	x, y, cpu_time = generate_inputs(8, i)
+	print("CPU time for input generation: "+str(round(cpu_time*1000, 2)))
+
+	cpu_times = []
+	for j in range(10):
+		votes_cpu_time = votes(x, y)
+		cpu_times.append(votes_cpu_time)
+	mean_cpu_time = statistics.mean(cpu_times)
+	print("CPU time for vote function: "+str(round(mean_cpu_time*1000, 2)))
