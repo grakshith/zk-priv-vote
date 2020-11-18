@@ -33,7 +33,7 @@ ignore_errors(True)
 # 		return 0
 # 	return x-1 + comparisons(x-1)
 
-@snark
+# @snark
 def checkOnes(x, y):
 	"""
 	Checks if any of the factors in y = 1
@@ -53,7 +53,7 @@ def checkOnes(x, y):
 
 	return _.x
 
-@snark
+# @snark
 def checkEqual(x, y):
 	"""
 	Checks if x(pubVal) and y(PubVal) are equal
@@ -121,7 +121,7 @@ def votes(x, y):
 		_endfor()
 	_endfor()
 
-	_.v2 = PrivVal(checkEqual(0, val))
+	_.v2 = checkEqual(0, val)
 
 
 
@@ -149,7 +149,7 @@ def votes(x, y):
 
 
 	#CHECK FOR FACTORS WHICH ARE 1
-	_.v4 = PrivVal(checkOnes(x, y))
+	_.v4 = checkOnes(x, y)
 
 	print('v4', _.v4)
 	print(_.v1*_.v2*_.v3*_.v4)
@@ -183,15 +183,18 @@ def votes(x, y):
 def generate_inputs(numVoters):
 	y = []
 	prodPuzzles = 1
+	unique_set = set()
+	while(len(unique_set)!=numVoters):
+		unique_set.add((generate_prime_number(8), generate_prime_number(16)))
 	for i in range(numVoters):
 		print(i)
-		y.append((generate_prime_number(8), generate_prime_number(8)))
+		y.append(unique_set.pop())
 		prodPuzzles *= y[i][0]*y[i][1]
 	print('out')
 	x = [prodPuzzles, numVoters]
 	return x, y
 
-x, y = generate_inputs(1)
+x, y = generate_inputs(10)
 print('out2')
 print(x)
 print(y)
