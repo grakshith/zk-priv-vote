@@ -4,6 +4,7 @@ from pysnark.runtime import PrivVal, PubVal, snark, ignore_errors
 from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
 from tuple_compare import tuple_compare
 from primes import generate_prime_number
+import time
 
 faulthandler.enable()
 ignore_errors(True)
@@ -85,6 +86,7 @@ def votes(x, y):
 	#TODO: y is currently public too because my_runtime broke the branching
 	#That needs to be checked
 
+	start_time = time.proces_time()
 	prodPuzzles = x[0]
 	numVoters = x[1]
 	voteFactors = y
@@ -160,6 +162,8 @@ def votes(x, y):
 	v = _.v1*_.v2*_.v3*_.v4
 
 	v.assert_nonzero()
+	end_time = time.process_time()
+	print("Votes CPU time: "+str(end_time - start_time))
 
 # #Divisible
 # x = [96, 5]
@@ -183,6 +187,7 @@ def votes(x, y):
 
 
 def generate_inputs(numVoters):
+	start_time = time.process_time()
 	y = []
 	prodPuzzles = 1
 	unique_set = set()
@@ -194,9 +199,11 @@ def generate_inputs(numVoters):
 		prodPuzzles *= y[i][0]*y[i][1]
 	print('out')
 	x = [prodPuzzles, numVoters]
+	end_time = time.process_time()
+	print("Generate inputs CPU time: "+str(end_time - start_time))
 	return x, y
 
-x, y = generate_inputs(10)
+x, y = generate_inputs(15)
 print('out2')
 print(x)
 print(y)
