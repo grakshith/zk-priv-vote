@@ -1,12 +1,12 @@
 import sys
-
+import faulthandler
 from pysnark.runtime import PrivVal, PubVal, snark, ignore_errors
 from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
 from tuple_compare import tuple_compare
+from primes import generate_prime_number
 
-
+faulthandler.enable()
 ignore_errors(True)
-# from pysnark.my_runtime import snark
 
 # @snark
 # def tuple_compare(x, y):
@@ -153,11 +153,7 @@ def votes(x, y):
 
 	print('v4', _.v4)
 	print(_.v1*_.v2*_.v3*_.v4)
-	# return _.v1*_.v2*_.v3*_.v4
-	# _.v1.assert_nonzero()
-	# _.v2.assert_nonzero()
-	# _.v3.assert_nonzero()
-	# _.v4.assert_nonzero()
+
 
 	v = _.v1*_.v2*_.v3*_.v4
 
@@ -179,10 +175,24 @@ def votes(x, y):
 # x = [96, 5]
 # y = [(3,3),(3,4),(2,2)]
 
-# Divisible
-x = [96, 3]
-y = [(2,4),(2,2)]
+# # Divisible
+# x = [96, 3]
+# y = [(2,4),(2,2)]
 
 
+def generate_inputs(numVoters):
+	y = []
+	prodPuzzles = 1
+	for i in range(numVoters):
+		print(i)
+		y.append((generate_prime_number(8), generate_prime_number(8)))
+		prodPuzzles *= y[i][0]*y[i][1]
+	print('out')
+	x = [prodPuzzles, numVoters]
+	return x, y
 
+x, y = generate_inputs(1)
+print('out2')
+print(x)
+print(y)
 votes(x, y)
