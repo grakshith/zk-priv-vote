@@ -1,7 +1,7 @@
 import sys
 import faulthandler
-from pysnark.runtime import PrivVal, PubVal, snark, ignore_errors
-from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
+from my_pysnark.runtime import PrivVal, PubVal, snark, ignore_errors
+from my_pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
 from tuple_compare import tuple_compare
 from primes import generate_prime_number
 import time
@@ -182,9 +182,9 @@ def votes(x, y):
 # x = [96, 5]
 # y = [(3,3),(3,4),(2,2)]
 
-# # Divisible
-# x = [96, 3]
-# y = [(2,4),(2,2)]
+# Divisible
+x = [96, 3]
+y = [(2,4),(2,2)]
 
 
 def generate_inputs(numVoters, param):
@@ -204,13 +204,13 @@ def generate_inputs(numVoters, param):
 	# print("Generate inputs CPU time: "+str(end_time - start_time))
 	return x, y, (end_time - start_time)
 
-# x, y = generate_inputs(15)
+x, y, _ = generate_inputs(10, 16)
 # print('out2')
 # print(x)
 # print(y)
-# votes(x, y)
+votes(x, y)
 
-
+'''
 for i in range(8, 17, 2):
 	print("Params (8, "+ str(i) + ", 10)")
 	x, y, cpu_time = generate_inputs(10, i)
@@ -235,3 +235,4 @@ for i in range(2, 11, 2):
 		cpu_times.append(votes_cpu_time)
 	mean_cpu_time = statistics.mean(cpu_times)
 	print("CPU time for vote function: "+str(round(mean_cpu_time*1000, 2)))
+'''

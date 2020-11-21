@@ -1,7 +1,7 @@
 import sys
 
-from pysnark.runtime import PrivVal, PubVal, snark
-from pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
+from my_pysnark.runtime import PrivVal, PubVal, snark
+from my_pysnark.branching import BranchingValues, if_then_else, _if, _elif, _else, _endif, _range, _while, _endwhile, _endfor, _breakif
 
 
 
