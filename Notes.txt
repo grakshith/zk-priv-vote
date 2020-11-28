@@ -1,0 +1,66 @@
+
+
+TASKS:
+
+1. Decoupling proof generation and verification --> Rakshith
+
+2. Do same functionalities with geth -- just put string in each transaction 
+	-- create a network of at least two nodes and do the string thing.. test consenses and all --> Chinmay
+
+3. Figure out the timing thing -- contestancy announcement (Setup phase), voting window (voting phase), proof verification window (counting and verification) -- how to do these things
+
+
+
+
+
+
+
+
+
+
+
+
+
+###########################
+SETUP:
+
+	-- To handle t malicious agents we have at least 2t+1 honest agents in the system (Same as PBFT)
+	-- Threshold of winning is set to t+1
+
+
+#########################
+
+MALICIOUS CASES:
+
+1. Voter malicious
+
+	i. Vote multiple times
+		-- Consider the latest vote, in particular, compute N with the latest factors
+		-- 
+
+	ii. Encrypt incorrect factors
+		i) repeated factors
+ 
+	iii. Don't ecrypt factors -- all participants can see the factors 
+		-- Think carefully that our protocol handle
+
+	iv. Say "yes" to false proof
+		-- Handled with honest majority
+	v. Compute N incorrectly
+		-- Votes is not discarding false proof -- handled by honest majority
+
+
+
+2. Contestant malicious
+
+	i. Compute N incorrectly and provide that proof
+		-- Honest majority will discard the proof
+
+	ii. Provide false proof
+		-- Honest majority will discard the proof
+
+  	(This case is mostly handled by honest majority)
+
+3. Node failure
+
+	-- Number of voters take care of this
