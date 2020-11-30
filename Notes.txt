@@ -4,29 +4,31 @@ TASKS:
 
 1. Decoupling proof generation and verification --> Rakshith
 
-2. Do same functionalities with geth -- just put string in each transaction 
-	-- create a network of at least two nodes and do the string thing.. test consenses and all --> Chinmay
+2. Do same functionalities with geth 
+	-- just put string in each transaction 
+	-- create a network of at least two nodes and do the string thing.. test consensus and all --> Chinmay & Radha
 
 3. Figure out the timing thing -- contestancy announcement (Setup phase), voting window (voting phase), proof verification window (counting and verification) -- how to do these things
-
-
-
-
-
-
-
-
-
-
-
+	Chinmay: One solution can be using the blockchain that we have.. each node continueusly mines the blocks (majority of which are empty i.e. don't contain any transaction or string 
+	sent by other participant. So, whenever say 100 blocks are mines, voting phase ends. Whenever next 100 blocks are mined, proof creation and broadcast ends, 
+	and after another 100 proof verification and result computation phase ends)
+	-- Since all participants start with same genesis, the blocknumbers are identical in all blockchain copies.. since each block is mined every second or so.. combining these two gives
+	some sort of common time across all participants.
+	-- Please verify, maybe I'm missing something obvious
 
 
 ###########################
 SETUP:
 
 	-- To handle t malicious agents we have at least 2t+1 honest agents in the system (Same as PBFT)
-	-- Threshold of winning is set to t+1
 
+	-- Threshold of winning is set to t+1 
+		-- implies a single voting round may have more than one winner (this is because of the number of agents in the system -- 3t+1)
+		-- For correctness of the election results, number of malicious agents has to be strictly less than the threshold
+		-- In order to design a protocol which returns a single winner, system assumptions have to be stronger, i.e., at least thresold many honest agents are alive (not slow) at all times. An 
+		example of this is when we assume no node fails, then with 2t+1 participants with at most t malicious parties, we can set the threshold to t+1 to obtain at most one winner.
+
+	-- (Note that in each round of voting, the outcomes can be a single winner, multiple winners or no winner -- all three are valid according to our protocol)
 
 #########################
 
@@ -35,19 +37,27 @@ MALICIOUS CASES:
 1. Voter malicious
 
 	i. Vote multiple times
-		-- Consider the latest vote, in particular, compute N with the latest factors
+		-- Consider the latest vote, in particular, honest agents will compute N with the latest n_i's (where n_i is the product i-th agent broadcast)
 		-- 
 
 	ii. Encrypt incorrect factors
-		i) repeated factors
+		i) repeated factors -- Since these will give only one unique factor to the contestant voter voted for, this goes against the contestant while producing zkproof and vote is not used to it 			potential, i.e., affects the malicious voter adversely
+		ii) Encrypty false factors -- same as (i) 
  
-	iii. Don't ecrypt factors -- all participants can see the factors 
-		-- Think carefully that our protocol handle
+	iii. Don't ecrypt factors 
+		-- all participants can see the factors 
+		-- Think carefully that our protocol handle 
+		(Chinmay: I think this should not be a problem as we allow for multiple winners but feels like participants can exploit this to produce weird results. 
+		We should make honest agents ignore such votes in the computation of final N)
 
 	iv. Say "yes" to false proof
 		-- Handled with honest majority
+
 	v. Compute N incorrectly
-		-- Votes is not discarding false proof -- handled by honest majority
+		-- This case is same as votes is not discarding false proof --> handled by honest majority
+
+	vi. Does not vote
+		-- Won't affect the correctness of voting procedure and due to honest majority, won't affect the liveness of the protocol
 
 
 
@@ -59,8 +69,8 @@ MALICIOUS CASES:
 	ii. Provide false proof
 		-- Honest majority will discard the proof
 
-  	(This case is mostly handled by honest majority)
+  	(This case is mostly handled by honest majority and the correctness of zero-knowledge proofs)
 
 3. Node failure
 
-	-- Number of voters take care of this
+	-- Number of voters (PBFT assumption) take care of this
