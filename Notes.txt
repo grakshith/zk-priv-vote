@@ -17,7 +17,24 @@ TASKS:
 	-- Please verify, maybe I'm missing something obvious
 
 
+System Components (to be implemented):
+
+1. Voter script and contestant script (same script with contestant flag) -- Chinmay
+	-- To put n_i as a string on the blockchain (where N = product(ni))
+	-- Call encryption script, get encrypted bytes and put on the blockchain
+	-- Keep tract of blocknumbers to detect phase change 
+	-- Voter : Collect n_i's in phase 2 and once phase 2 is done collect the proof and verify 
+	-- Contestant : Once phase 1 is done, contestant should mine (decryption of factors) all factors and produce proof and put the proof on blockchain in phase 2.. Repeat same procedure as voter in 			phase 3
+
+	-- Make the voter contestant script with security flag (no encryption, no zkproof produce and verify part) - this 
+
+2. For phase 3, write a script to convert public inputs into R1CS (Rakshith) -- Explore the structure of pub val from proof and try to recreate the same structure at the verifier's end
+
+3. Code for benchmarking -- timing and network class 
+
+
 ###########################
+
 SETUP:
 
 	-- To handle t malicious agents we have at least 2t+1 honest agents in the system (Same as PBFT)
