@@ -1,0 +1,15 @@
+overall structure of the protocol
+
+options in setting up blockchain
+
+exchange of public keys
+
+rsa signature to find the sender of a message on bc -- is there any cleaner way in web3 itself?
+
+Assumption -- there's a way to get the sender for any block on blockchain
+
+Assumption -- Malicious agents when sending non-encrypted factors follow a specified format
+
+Assumption -- Malicious agent either sends both factors unencypted or none 
+(case with one factor can be handled with little more core but is not interesting and I'm lazy)
+
