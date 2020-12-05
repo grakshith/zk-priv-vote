@@ -46,7 +46,7 @@ def generate_prime_candidate(length):
 def generate_prime_number(length=1024):
     """ Generate a prime
         Args:
-            length -- int -- length of the prime to generate, in          bits
+            length -- int -- length of the prime to generate, in bits
         return a prime
     """
     p = 4
@@ -55,4 +55,14 @@ def generate_prime_number(length=1024):
         p = generate_prime_candidate(length)
     return p
     
-# print(generate_prime_number())
+# print(generate_prime_number(20))
+
+def generate_prime_pair(param):
+	y = []
+	unique_set = set()
+	while(len(unique_set)!=2):
+		unique_set.add(generate_prime_number(param))
+	y = list(unique_set)
+	return y 
+
+#print(generate_prime_pair(32))

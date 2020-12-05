@@ -51,6 +51,7 @@ def read_private_key(filename):
     return private_key
 
 def rsa_encrypt(message, public_key):
+    message = str.encode(message)   # string to bytes
     ciphertext = public_key.encrypt(
         message,
         padding.OAEP(
@@ -70,6 +71,7 @@ def rsa_decrypt(ciphertext, private_key):
             label=None
         )
     )
+    message = bytes.decode(message) # bytes to string
     return message
 
 def rsa_sign(message, signing_key):
