@@ -2,7 +2,7 @@ overall structure of the protocol
 
 options in setting up blockchain
 
-exchange of public keys
+
 
 rsa signature to find the sender of a message on bc -- is there any cleaner way in web3 itself?
 
@@ -13,3 +13,11 @@ Assumption -- Malicious agents when sending non-encrypted factors follow a speci
 Assumption -- Malicious agent either sends both factors unencypted or none 
 (case with one factor can be handled with little more core but is not interesting and I'm lazy)
 
+
+1. exchange of public keys: Can we assume publickeys as identities and that we share those beforehand without sharing explicitly on the bc 
+--> check transaction.from if that works we may be able to get rid of signatures
+
+2. Miner -- i) Figure out if mining cna be started with python code  -- https://github.com/ethereum/web3.py/issues/778
+            ii) If not, make phase I longer for safety
+
+3. Add wait until block number before each phase
