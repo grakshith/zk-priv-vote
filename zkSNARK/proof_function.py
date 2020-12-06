@@ -6,7 +6,7 @@ from tuple_compare import tuple_compare
 from primes import generate_prime_number
 import time
 import statistics
-import pysnark.libsnark.backend as backend
+import my_pysnark.libsnark.backend as backend
 
 faulthandler.enable()
 ignore_errors(True)
@@ -211,14 +211,19 @@ x, y, _ = generate_inputs(10, 16)
 # print(y)
 votes(x, y)
 
-vk, proof, pubvals = backend.prove()
-
+# vk, proof, pubvals = backend.prove()
+#
 # print(type(pubvals))
 # print(type(vk))
 # print(type(proof))
-
-with open("pysnark_pubvals", "w") as f:
-    pubvals.write(f)
+#
+# with open("pysnark_pubvals", "w") as f:
+#     pubvals.write(f)
+#
+# # Sanity check if the proof is verifiable
+# import libsnark.alt_bn128 as real_backend
+# print(real_backend.zk_verifier_strong_IC(vk, pubvals, proof))
+# print("Verification status = ", status)
 
 '''
 for i in range(8, 17, 2):
