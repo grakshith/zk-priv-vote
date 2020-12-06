@@ -26,7 +26,7 @@ def hex_to_string(s):
 def sendTransaction(web3, account, message, private_key):
     nonce_1 = web3.eth.getTransactionCount(account)
     signature = rsa_sign(message, private_key)
-    message = message + "--"  + signature 
+    message = message + "--"  + signature # change signature format 
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 
@@ -47,12 +47,14 @@ def find_sender(message, public_keys):
     for participant in public_keys:
         if rsa_verify(message, signature, public_keys[participant]):
             sender_id = participant
-    return message, sender_id
+            return message, sender_id
 
 
-def gather_contestants_participants_ni(web3, public_keys):
+def gather_contestants_participants_ni(web3, public_keys, anonymous):
     contestants = set()
-    participants_ni = {}
+    if anonymous: participants_ni = {} 
+    else:
+        participants_ni = None
     block_number = 1
     while block_number < 301:
         if len(web3.eth.getBlock(block_number).transactions) != 0:
@@ -68,7 +70,7 @@ def gather_contestants_participants_ni(web3, public_keys):
             if message[0] == "01":
                 if message[-1].isdigit():
                     contestants.add(int(message[-1]))
-            if message[0] == "02":
+            if anonymous and message[0] == "02":
                 # valid n_i message
                 if message[-1].isdigit():
                     participants_ni[sender_id] = int(message[-1])

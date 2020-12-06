@@ -10,14 +10,14 @@ from proof_function import *
 anonymous = True
 
 # dict of public keys of all participants
-public_keys = {1: "", 2:"", 3:""}
+public_keys = {1: "", 2:"", 3:""}  
 
 # participant details
 participant_id = 1 
 public_key = ""
 private_Key = ""
 contestant = False
-voters = len(public_keys)
+voters = len(public_keys)  
 
 print("My id:", participant_id)
 
@@ -41,9 +41,10 @@ if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
     message = "02 Voter id: {} {}".format(participant_id, n_i)
+    sendTransaction(web3, account_1, message, private_Key)
 
 # intermediate-phase 1 -- blocks 301-700 -- gather products to form N and gather list of contestants
-contestants, participants_ni = gather_contestants_participants_ni(web3, public_keys)
+contestants, participants_ni = gather_contestants_participants_ni(web3, public_keys, anonymous)
 print("contestants: ", contestants)
 
 if anonymous:
@@ -68,7 +69,7 @@ else:
 
 
 # intermediate phase 2 -- blocks 1001 - 1400 -- honest agents and contestants discard non-encrypted factors to compute new N, contestant count votes
-# blocks 1401 - 1600 -- contestants find proofs
+# blocks 1401 - 1800 -- contestants find proofs and share the proof
 
 if contestant:
     # update N, voters; gather legit votes; construct proof
@@ -77,16 +78,15 @@ if contestant:
 
     # call proof function with N, legit factors and voters
 
+
+
 else:
     # update N, voters
     discard_factors = non_encrypted_factors(web3,private_Key)
     N, voters = updated_voters(N, voters, discard_factors)
 
 
-# phase 3 -- blocks 1601 - 1800 -- contestant share proofs
 
 
-
-
-# phase 4 -- blocks 1801 - 2100 -- honest agents verify proofs and determine the winner
+# phase 3 -- blocks 1801 - 2100 -- honest agents verify proofs (by checking blocks 1400- 1800) and determine the winner
 
