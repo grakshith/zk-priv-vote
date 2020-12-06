@@ -27,7 +27,7 @@ def sendTransaction(web3, account, message, private_key):
     nonce_1 = web3.eth.getTransactionCount(account)
     signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format 
-    message = str.encode(message) + str.encode("--") + signature
+    message = message + str.encode("--") + signature
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 

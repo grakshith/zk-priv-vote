@@ -74,13 +74,13 @@ if debug:
 
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
-    message = "01 Contestant id: {}".format(participant_id)  
+    message = str.encode("01 Contestant id: {}".format(participant_id))  
     sendTransaction(web3, account_1, message, private_key)
 
 if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
-    message = "02 Voter id: {} {}".format(participant_id, n_i)
+    message = str.encode("02 Voter id: {} {}".format(participant_id, n_i))
     sendTransaction(web3, account_1, message, private_key)
 
 #wait for next phase
@@ -117,13 +117,13 @@ vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a ti
 
 if anonymous:
     # send encrypted votes
-    message = "03 {} {}".format(prime_pair[0], prime_pair[1])
+    message = str.encode("03 {} {}".format(prime_pair[0], prime_pair[1]))
     contestant_pk = public_keys[vote] # contestant is the person to vote
     encrypted_message = rsa_encrypt(message, contestant_pk)
     sendTransaction(web3, account_1, encrypted_message, private_key) # potential issue -- need to convert bytes to hex
 
 else:
-    message = "03 vote: {}".format(vote)
+    message = str.encode("03 vote: {}".format(vote))
     sendTransaction(web3, account_1, message, private_key)
 
 #wait for next phase
