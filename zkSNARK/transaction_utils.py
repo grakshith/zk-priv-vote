@@ -26,7 +26,8 @@ def hex_to_string(s):
 def sendTransaction(web3, account, message, private_key):
     nonce_1 = web3.eth.getTransactionCount(account)
     signature = rsa_sign(message, private_key)
-    message = message + "--"  + signature # change signature format 
+    # message = message + "--"  + signature # change signature format 
+    message = str.encode(message) + str.encode("--") + signature
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 
@@ -39,6 +40,23 @@ def sendTransaction(web3, account, message, private_key):
     tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
     return tx_hash
 
+#get all public keys of participants
+def get_public_keys(web3, start, end):
+    public_keys = {}
+    block_number = start
+    while block_number < end:
+        if len(web3.eth.getBlock(block_number).transactions) != 0:
+            block_hash = web3.eth.getBlock(block_number).transactions[0]
+            transaction = web3.eth.getTransaction(block_hash)
+            # need to find sender of the transaction here (better way of doing this is welcome)
+            message = hex_to_string(transaction.input)
+            sender_id = transaction['from']
+            #FIGURE OUT BYTESTRING BIT
+            if str(message, 'utf-8').split()[0] == "00":
+                message = message.strip().split()
+                public_keys[sender_id] = message[-1]
+
+    return public_keys
 
 # find sender of the message by checking signature
 def find_sender(message, public_keys):
@@ -50,22 +68,24 @@ def find_sender(message, public_keys):
             return message, sender_id
 
 
-def gather_contestants_participants_ni(web3, public_keys, anonymous):
+def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous):
     contestants = set()
     if anonymous: participants_ni = {} 
     else:
         participants_ni = None
-    block_number = 1
-    while block_number < 301:
+    block_number = start
+    while block_number < end:
         if len(web3.eth.getBlock(block_number).transactions) != 0:
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             # need to find sender of the transaction here (better way of doing this is welcome)
             message = hex_to_string(transaction.input)
-            message, sender_id = find_sender(message, public_keys)
-            if not sender_id:
-                # case when malicious participant sends an incorrect signature
-                continue
+            # message, sender_id = find_sender(message, public_keys)
+            sender_id = transaction['from']
+            
+            # if not sender_id:
+            #     # case when malicious participant sends an incorrect signature
+            #     continue
             message = message.strip().split()
             if message[0] == "01":
                 if message[-1].isdigit():
@@ -77,26 +97,33 @@ def gather_contestants_participants_ni(web3, public_keys, anonymous):
         block_number += 1
     return contestants, participants_ni
 
-def non_encrypted_factors(web3, private_key):
+def non_encrypted_factors(web3, private_key, start, end):
     # assumption --  these messages come in specified format
     non_encrypted_factors = set()
-    block_number = 1001
-    while block_number < 1401:
+    block_number = start
+    legit_votes = set()
+    del_list = []
+    while block_number < end:
         if len(web3.eth.getBlock(block_number).transactions) != 0:
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             message = hex_to_string(transaction.input)
-            if rsa_decrypt(message, private_key).split()[0] == "03":
+            if transaction['from'] in legit_votes:
+                #Repeated vote, record the participant
+                del_list.append(transaction['from'])
+            elif rsa_decrypt(message, private_key).split()[0] == "03":
                 pass
             elif str(message, 'utf-8').split()[0] == "03":
                 message = message.strip().split()
                 non_encrypted_factors.add(int(message[-1])) 
                 non_encrypted_factors.add(int(message[-2]))
+            legit_votes.add(transaction['from'])
         block_number+= 1
-    return non_encrypted_factors
+
+    return non_encrypted_factors, list(set(del_list))
 
 
-def updated_voters(N, voters, discard_factors):
+def updated_voters(N, voters, discard_factors, participants_ni, del_list):
     counter = 0
     for factor in discard_factors:
         new_N = N / factor
@@ -104,26 +131,45 @@ def updated_voters(N, voters, discard_factors):
             # legitimate factor; other case is when malicious agents put random numbers on the blockchain
             N = new_N
             counter += 1
+
+    #Remove puzzles by people who voted multiple times
+    for participant in del_list:
+        N = N/participants_ni[participant]
+        counter += 1
+
     voters = voters - counter // 2 # decrease number of legit voters to pass to the verification function
     return N, voters
 
-def find_votes(web3, private_key):
+def find_votes(web3, private_key, start, end):
     non_encrypted_factors = set()
-    legit_factors = set()
-    block_number = 1001
-    while block_number < 1401:
+    # legit_factors = set()
+    legit_factors = {}
+    del_list = []
+    block_number = start
+    while block_number < end:
         if len(web3.eth.getBlock(block_number).transactions) != 0:
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             message = hex_to_string(transaction.input)
-            if rsa_decrypt(message, private_key).split()[0] == "03":
+            if transaction['from'] in legit_factors:
+                #Repeated vote, record the participant
+                del_list.append(transaction['from'])
+            elif rsa_decrypt(message, private_key).split()[0] == "03":
                 # legit voters
                 message = message.strip().split()
-                legit_factors.add(int(message[-1])) 
-                legit_factors.add(int(message[-2]))
+                # legit_factors.add(int(message[-1])) 
+                # legit_factors.add(int(message[-2]))
+                # FACTORS ARE NOW LIST OF TUPLES
+                legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
+
             elif str(message, 'utf-8').split()[0] == "03":
                 message = message.strip().split()
                 non_encrypted_factors.add(int(message[-1])) 
                 non_encrypted_factors.add(int(message[-2]))
         block_number+= 1
-    return non_encrypted_factors, legit_factors
+
+    #Delete the newest vote of participants who voted multiple times
+    for key in list(set(del_list)):
+        del legit_factors[key]
+
+    return non_encrypted_factors, legit_factors, del_list
