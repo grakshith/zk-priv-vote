@@ -85,6 +85,7 @@ def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous)
             # need to find sender of the transaction here (better way of doing this is welcome)
             message = hex_to_string(transaction.input)
             # message, sender_id = find_sender(message, public_keys)
+            #ADD IN VERIFICATION
             sender_id = transaction['from']
             
             # if not sender_id:

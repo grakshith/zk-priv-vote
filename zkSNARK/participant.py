@@ -51,11 +51,10 @@ if anonymous:
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    if web3.eth.getBlock('latest').blockNumber < phase_0_end:
-        sendTransaction(web3, account_1, message, private_key)
+    sendTransaction(web3, account_1, message, private_key)
 
 #wait for next phase
-while web3.eth.getBlock('latest').blockNumber < phase_0_end:
+while web3.eth.blockNumber < phase_0_end:
     continue
 
 if debug:
@@ -65,8 +64,9 @@ if debug:
 if anonymous:
     public_keys = get_public_keys(web3, start_block, phase_0_end)
     # voters = len(public_keys)
+
 #wait for next phase
-while web3.eth.getBlock('latest').blockNumber < inter_phase_0_end:
+while web3.eth.blockNumber < inter_phase_0_end:
     continue
 
 if debug:
@@ -74,19 +74,17 @@ if debug:
 
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
-    message = "01 Contestant id: {}".format(participant_id)
-    if web3.eth.getBlock('latest').blockNumber < phase_1_end:  
-        sendTransaction(web3, account_1, message, private_key)
+    message = "01 Contestant id: {}".format(participant_id)  
+    sendTransaction(web3, account_1, message, private_key)
 
 if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
     message = "02 Voter id: {} {}".format(participant_id, n_i)
-    if web3.eth.getBlock('latest').blockNumber < phase_1_end:
-        sendTransaction(web3, account_1, message, private_key)
+    sendTransaction(web3, account_1, message, private_key)
 
 #wait for next phase
-while web3.eth.getBlock('latest').blockNumber < phase_1_end:
+while web3.eth.blockNumber < phase_1_end:
     continue
 
 if debug:
@@ -106,7 +104,7 @@ if anonymous:
         N *= participants_ni[participant]
 
 #wait for next phase
-while web3.eth.getBlock('latest').blockNumber < inter_phase_1_end:
+while web3.eth.blockNumber < inter_phase_1_end:
     continue
 
 if debug:
@@ -129,7 +127,7 @@ else:
     sendTransaction(web3, account_1, message, private_key)
 
 #wait for next phase
-while web3.eth.getBlock('latest').blockNumber < phase_2_end:
+while web3.eth.blockNumber < phase_2_end:
     continue
 
 if debug:
@@ -157,7 +155,7 @@ if debug:
     print("New voters: ", voters)
 
 #wait for next phase
-while web3.eth.getBlock('latest').blockNumber < inter_phase_3_end:
+while web3.eth.blockNumber < inter_phase_3_end:
     continue
 
 # phase 3 -- blocks 1801 - 2100 -- honest agents verify proofs (by checking blocks 1400- 1800) and determine the winner
