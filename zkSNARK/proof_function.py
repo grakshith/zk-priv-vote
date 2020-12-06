@@ -6,6 +6,7 @@ from tuple_compare import tuple_compare
 from primes import generate_prime_number
 import time
 import statistics
+import pysnark.libsnark.backend as backend
 
 faulthandler.enable()
 ignore_errors(True)
@@ -209,6 +210,15 @@ x, y, _ = generate_inputs(10, 16)
 # print(x)
 # print(y)
 votes(x, y)
+
+vk, proof, pubvals = backend.prove()
+
+# print(type(pubvals))
+# print(type(vk))
+# print(type(proof))
+
+with open("pysnark_pubvals", "w") as f:
+    pubvals.write(f)
 
 '''
 for i in range(8, 17, 2):
