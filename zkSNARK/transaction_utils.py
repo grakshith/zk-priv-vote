@@ -54,7 +54,11 @@ def get_public_keys(web3, start, end):
             #FIGURE OUT BYTESTRING BIT
             if str(message, 'utf-8').split()[0] == "00":
                 message = message.strip().split()
-                public_keys[sender_id] = message[-1]
+                key = serialization.load_pem_public_key(
+                    message[-1],
+                    backend=default_backend()
+                )
+                public_keys[sender_id] = key
 
     return public_keys
 

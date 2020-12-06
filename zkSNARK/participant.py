@@ -31,11 +31,6 @@ contestant = False
 
 print("My id:", participant_id)
 
-# script to turn-on mining --  we will do the enode connection beforehand and just turn on mining at this point if possible
-web3.geth.miner.start(1)
-
-print("Mining started")
-
 # initial web3 setup
 # web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
 web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
@@ -43,9 +38,19 @@ web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/pri
 account_1 = web3.eth.accounts[0]
 web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
 
+
+# script to turn-on mining --  we will do the enode connection beforehand and just turn on mining at this point if possible
+web3.geth.miner.start(1)
+
+print("Mining started")
+
+
 #phase 0: blocks 1-100 -- publish public key
 if anonymous:
-    message = str.encode("00 ") + public_key
+    message = str.encode("00 ") + public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
     if web3.eth.getBlock('latest').blockNumber < phase_0_end:
         sendTransaction(web3, account_1, message, private_key)
 
