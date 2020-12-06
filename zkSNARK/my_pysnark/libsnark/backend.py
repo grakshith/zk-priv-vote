@@ -72,13 +72,18 @@ def prove(do_keygen=True, do_write=True, do_print=True):
 
     proof=prover(keypair.pk, pubvals, privvals);
     if do_write:
-        #with open("pysnark_log", "w") as f:
-        #    proof.write(f)
+        with open("pysnark_log", "w") as f:
+            proof.write(f)
         write_proof(proof, pubvals, "pysnark_log")
         with open("pysnark_pubvals", "w") as f:
             pubvals.write(f)
+        with open("pysnark_vk", "w") as f:
+            keypair.vk.write(f)
 
-    if do_print: print("*** Public inputs: " + " ".join([str(pubvals.at(i)) for i in range(pubvals.size())]), file=sys.stderr)
+    if do_print:
+        print("*** Public inputs: " + " ".join([str(pubvals.at(i)) for i in range(pubvals.size())]), file=sys.stderr)
+        print("*** Verification Key: ", keypair.vk.str())
+        print("*** Proof: ", proof.str())
     # if do_print: print("*** Verification status:", verifier_strong_IC(keypair.vk, pubvals, proof), file=sys.stderr)
 
     return (keypair.vk, proof, pubvals)
