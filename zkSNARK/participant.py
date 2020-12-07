@@ -11,14 +11,15 @@ phase_0_end = 10
 inter_phase_0_end = 20
 phase_1_end = 30
 inter_phase_1_end = 40
-phase_2_end = 180
-inter_phase_2_mid = 210
-inter_phase_2_end = 240    #1400 is an in-between milestone?
-phase_3_end = 300
+phase_2_end = 50
+inter_phase_2_mid = 60
+inter_phase_2_end = 70    #1400 is an in-between milestone?
+phase_3_end = 80
 
 # protocol flags
 anonymous = True
 debug = True
+contestant = True
 
 # dict of public keys of all participants
 public_keys = {}  
@@ -26,7 +27,7 @@ public_keys = {}
 # participant details
 participant_id = 1 
 public_key, private_key = gen_keys()
-contestant = False
+
   
 
 print("My id:", participant_id)
@@ -84,7 +85,11 @@ if debug:
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
     message = str.encode("01| Contestant id: |{}".format(participant_id))  
-    sendTransaction(web3, account_1, message, private_key, bc_key)
+    print(message)
+    txhash = sendTransaction(web3, account_1, message, private_key, bc_key)
+    print('hash: ', txhash.decode())
+
+time.sleep(10)
 
 if anonymous:
     prime_pair = generate_prime_pair(16)

@@ -27,7 +27,7 @@ def sendTransaction(web3, account, message, private_key, bc_key):
     nonce_1 = web3.eth.getTransactionCount(account)
     signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format 
-    message = message + str.encode("--") # + signature
+    message = message #+ str.encode("--") + signature
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 
@@ -95,14 +95,14 @@ def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous)
             # if not sender_id:
             #     # case when malicious participant sends an incorrect signature
             #     continue
-            message = message.strip().split('|')
-            if message[0] == "01":
-                if message[-1].isdigit():
-                    contestants.add(int(message[-1]))
-            if anonymous and message[0] == "02":
+            message = message.strip().split(str.encode("|"))
+            if message[0].decode() == "01":
+                if message[-1].decode().isdigit():
+                    contestants.add(int(message[-1].decode()))
+            if anonymous and message[0].decode() == "02":
                 # valid n_i message
-                if message[-1].isdigit():
-                    participants_ni[sender_id] = int(message[-1])
+                if message[-1].decode().isdigit():
+                    participants_ni[sender_id] = int(message[-1].decode())
         block_number += 1
     return contestants, participants_ni
 
@@ -120,9 +120,9 @@ def non_encrypted_factors(web3, private_key, start, end):
             if transaction['from'] in legit_votes:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split('|')[0] == "03":
+            elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
                 pass
-            elif str(message, 'utf-8').split('|')[0] == "03":
+            elif message.split('|')[0].decode() == "03":
                 message = message.strip().split('|')
                 non_encrypted_factors.add(int(message[-1])) 
                 non_encrypted_factors.add(int(message[-2]))
@@ -163,18 +163,18 @@ def find_votes(web3, private_key, start, end):
             if transaction['from'] in legit_factors:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split('|')[0] == "03":
+            elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
                 # legit voters
-                message = message.strip().split()
+                message = message.strip().split(str.encode("|"))
                 # legit_factors.add(int(message[-1])) 
                 # legit_factors.add(int(message[-2]))
                 # FACTORS ARE NOW LIST OF TUPLES
-                legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
+                legit_factors[transaction['from']] = (int(message[-1].decode()), int(message[-2]))
 
-            elif str(message, 'utf-8').split('|')[0] == "03":
-                message = message.strip().split('|')
-                non_encrypted_factors.add(int(message[-1])) 
-                non_encrypted_factors.add(int(message[-2]))
+            elif message.split(str.encode("|"))[0].decode() == "03":
+                message = message.strip().split(str.encode("|"))
+                non_encrypted_factors.add(int(message[-1].decode())) 
+                non_encrypted_factors.add(int(message[-2].decode()))
         block_number+= 1
 
     #Delete the newest vote of participants who voted multiple times
