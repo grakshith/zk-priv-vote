@@ -1,9 +1,11 @@
 import sys
+import time
+import subprocess
 from web3 import Web3
 from primes import generate_prime_pair
 from transaction_utils import *
 from crypto import *
-from proof_function import *
+# from proof_function import *
 
 #constant parameters
 start_block = 1
@@ -25,12 +27,8 @@ contestant = True
 public_keys = {}  
 
 # participant details
-participant_id = 1 
 public_key, private_key = gen_keys()
-
-  
-
-print("My id:", participant_id)
+participant_id = 1
 
 # initial web3 setup
 # web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
@@ -84,17 +82,16 @@ if debug:
 
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
-    message = str.encode("01| Contestant id: |{}".format(participant_id))  
+    message = str.encode("01".format(participant_id))  
     print(message)
     txhash = sendTransaction(web3, account_1, message, private_key, bc_key)
-    print('hash: ', txhash.decode())
 
 time.sleep(10)
 
 if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
-    message = str.encode("02| Voter id: |{}|{}".format(participant_id, n_i))
+    message = str.encode("02|{}".format(n_i))
     sendTransaction(web3, account_1, message, private_key, bc_key)
 
 if debug:
@@ -112,7 +109,9 @@ if debug:
 contestants, participants_ni = gather_contestants_participants_ni(web3, public_keys, phase_0_end+1, phase_1_end, anonymous)
 voters = len(participants_ni)
 
-print("contestants: ", contestants)
+print("contestants: ")
+for i, c in enumerate(contestants):
+    print("{}: {}".format(i, c))
 
 if anonymous:
     N = 1
@@ -133,8 +132,8 @@ vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a ti
 
 if anonymous:
     # send encrypted votes
-    message = str.encode("03|{}|{}".format(prime_pair[0], prime_pair[1]))
-    contestant_pk = public_keys[vote] # contestant is the person to vote
+    message = "03|{}|{}".format(prime_pair[0], prime_pair[1])
+    contestant_pk = public_keys[contestants[vote]] # contestant is the person to vote
     encrypted_message = rsa_encrypt(message, contestant_pk)
     sendTransaction(web3, account_1, encrypted_message, private_key, bc_key) # potential issue -- need to convert bytes to hex
 
@@ -171,7 +170,7 @@ if debug:
     print("New voters: ", voters)
 
 #wait for next phase
-while web3.eth.blockNumber < inter_phase_3_end:
+while web3.eth.blockNumber < inter_phase_2_end:
     continue
 
 # phase 3 -- blocks 1801 - 2100 -- honest agents verify proofs (by checking blocks 1400- 1800) and determine the winner

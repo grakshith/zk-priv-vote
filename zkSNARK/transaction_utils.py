@@ -77,7 +77,7 @@ def find_sender(message, public_keys):
 
 
 def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous):
-    contestants = set()
+    contestants = []
     if anonymous: participants_ni = {} 
     else:
         participants_ni = None
@@ -96,15 +96,16 @@ def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous)
             #     # case when malicious participant sends an incorrect signature
             #     continue
             message = message.strip().split(str.encode("|"))
+            print('msg: ', message)
             if message[0].decode() == "01":
                 if message[-1].decode().isdigit():
-                    contestants.add(int(message[-1].decode()))
+                    contestants.append(sender_id)
             if anonymous and message[0].decode() == "02":
                 # valid n_i message
                 if message[-1].decode().isdigit():
                     participants_ni[sender_id] = int(message[-1].decode())
         block_number += 1
-    return contestants, participants_ni
+    return list(set(contestants)), participants_ni
 
 def non_encrypted_factors(web3, private_key, start, end):
     # assumption --  these messages come in specified format
@@ -160,16 +161,17 @@ def find_votes(web3, private_key, start, end):
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             message = hex_to_string(transaction.input)
+            print(type(rsa_decrypt(message, private_key)))
             if transaction['from'] in legit_factors:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
+            elif rsa_decrypt(message, private_key).split("|")[0] == "03":
                 # legit voters
-                message = message.strip().split(str.encode("|"))
+                message = rsa_decrypt(message, private_key).strip().split("|")
                 # legit_factors.add(int(message[-1])) 
                 # legit_factors.add(int(message[-2]))
                 # FACTORS ARE NOW LIST OF TUPLES
-                legit_factors[transaction['from']] = (int(message[-1].decode()), int(message[-2]))
+                legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
 
             elif message.split(str.encode("|"))[0].decode() == "03":
                 message = message.strip().split(str.encode("|"))
