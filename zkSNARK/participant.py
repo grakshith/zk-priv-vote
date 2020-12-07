@@ -23,8 +23,9 @@ anonymous = True
 debug = True
 contestant = True
 
-# dict of public keys of all participants
+# dict of public keys of all participants and winning threshold
 public_keys = {}  
+threshold = 2
 
 # participant details
 public_key, private_key = gen_keys()
@@ -42,7 +43,7 @@ with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net20
     bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
 
 
-# script to turn-on mining --  we will do the enode connection beforehand and just turn on mining at this point if possible
+# script to turn-on mining --  participant.py should be run after connecting peers manually using enode
 web3.geth.miner.start(1)
 
 print("Mining started")
@@ -82,7 +83,7 @@ if debug:
 
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
-    message = str.encode("01".format(participant_id))  
+    message = str.encode("01")   
     print(message)
     txhash = sendTransaction(web3, account_1, message, private_key, bc_key)
 
@@ -133,7 +134,7 @@ vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a ti
 if anonymous:
     # send encrypted votes
     message = "03|{}|{}".format(prime_pair[0], prime_pair[1])
-    contestant_pk = public_keys[contestants[vote]] # contestant is the person to vote
+    contestant_pk = public_keys[contestants[vote]] 
     encrypted_message = rsa_encrypt(message, contestant_pk)
     sendTransaction(web3, account_1, encrypted_message, private_key, bc_key) # potential issue -- need to convert bytes to hex
 
@@ -160,9 +161,16 @@ if contestant and anonymous:
 
 
 elif anonymous:
-    # update N, voters
+    # Voter in anonymous protocol: update N, voters
     discard_factors, del_list = non_encrypted_factors(web3,private_key, inter_phase_1_end + 1, phase_2_end )
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
+
+else:
+    # candidate or voter in non-anonymous
+    vote_count = get_vote_count(web3, contestants, inter_phase_1_end+1, phase_2_end)
+    if contestant:
+        message = str.encode("04|Winner")
+        sendTransaction(web3, account_1, message, private_key, bc_key)
 
 if debug:
     print("Inter Phase 2 done.")
@@ -174,4 +182,20 @@ while web3.eth.blockNumber < inter_phase_2_end:
     continue
 
 # phase 3 -- blocks 1801 - 2100 -- honest agents verify proofs (by checking blocks 1400- 1800) and determine the winner
+
+if anonymous:
+    # honest agents should verify proofs and put true or false on the blockchain
+    pass
+
+else:
+    # honest agents publish true or false
+    winners = get_winners(web3, contestants, inter_phase_2_end+1, phase_3_end)
+    non_winners = set()
+    for claimed_winner in winners:
+        if vote_count[claimed_winner] < threshold:
+            non_winners.add(claimed_winner)
+    for non_winner in non_winners:
+        message = str.encode("False|{}".format(non_winner))
+        sendTransaction(web3, account_1, message, private_key, bc_key)
+
 

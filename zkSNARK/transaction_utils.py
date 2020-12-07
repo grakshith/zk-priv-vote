@@ -77,6 +77,7 @@ def find_sender(message, public_keys):
 
 
 def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous):
+    # note -> contestants list is an identical ORDERED list for all participants --> useful fact for non-secure voting
     contestants = []
     if anonymous: participants_ni = {} 
     else:
@@ -161,7 +162,7 @@ def find_votes(web3, private_key, start, end):
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             message = hex_to_string(transaction.input)
-            print(type(rsa_decrypt(message, private_key)))
+            print(type(rsa_decrypt(message, private_key)))  # debug statement
             if transaction['from'] in legit_factors:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
@@ -184,3 +185,53 @@ def find_votes(web3, private_key, start, end):
         del legit_factors[key]
 
     return non_encrypted_factors, legit_factors, del_list
+
+# for non-anonymous case, this function finds votes by non-malicious agents
+def get_vote_count(web3, contestants, start, end):
+    legit_votes = dict()
+    del_list = []
+    block_number = start
+    while block_number < end:
+        if len(web3.eth.getBlock(block_number).transactions) != 0:
+            block_hash = web3.eth.getBlock(block_number).transactions[0]
+            transaction = web3.eth.getTransaction(block_hash)
+            message = hex_to_string(transaction.input)
+            if transaction['from'] in legit_votes:
+                #Repeated vote, record the participant
+                del_list.append(transaction['from'])
+            elif message.split(str.encode("|"))[0].decode() == "03":
+                # record a vote
+                message = message.strip().split(str.encode("|"))
+                legit_votes[transaction['from']] = int(message[-1])
+        block_number += 1
+    #Delete the newest vote of participants who voted multiple times
+    for key in list(set(del_list)):
+        del legit_votes[key]
+
+    # vote counting
+    vote_count = dict()
+    for candidate in legit_votes:
+        if legit_votes[candidate] in vote_count:
+            vote_count[legit_votes[candidate]] += 1
+        else:
+             vote_count[legit_votes[candidate]] = 1
+    return vote_count
+
+def get_winners(web3, contestants, start, end):
+    winners_id = set()
+    block_number = start
+    while block_number < end:
+        if len(web3.eth.getBlock(block_number).transactions) != 0:
+            block_hash = web3.eth.getBlock(block_number).transactions[0]
+            transaction = web3.eth.getTransaction(block_hash)
+            message = hex_to_string(transaction.input)
+            if message.split(str.encode("|"))[0].decode() == "04":
+                # record winner
+                winners_id.add(transaction['from'])
+        block_number += 1
+
+    # winner indices from the list of contestants
+    winners = []
+    for winner in winners_id:
+        winners.append(contestants.index(winner))
+    return winners
