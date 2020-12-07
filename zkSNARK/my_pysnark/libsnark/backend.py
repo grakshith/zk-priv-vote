@@ -74,7 +74,6 @@ def prove(do_keygen=True, do_write=True, do_print=True):
     if do_write:
         with open("pysnark_log", "w") as f:
             proof.write(f)
-        write_proof(proof, pubvals, "pysnark_log")
         with open("pysnark_pubvals", "w") as f:
             pubvals.write(f)
         with open("pysnark_vk", "w") as f:
