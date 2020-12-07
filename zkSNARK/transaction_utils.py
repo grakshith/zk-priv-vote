@@ -16,26 +16,26 @@ def string_to_hex(s):
 
 
 def hex_to_string(s):
-    string = bytes.fromhex(s)
+    string = bytes.fromhex(s[2:])
     return string
 
     
 
 # send transaction on the blockchain
 
-def sendTransaction(web3, account, message, private_key):
+def sendTransaction(web3, account, message, private_key, bc_key):
     nonce_1 = web3.eth.getTransactionCount(account)
     signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format 
-    message = message + str.encode("--") + signature
+    message = message + str.encode("--") # + signature
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 
-        'gas': 0,
+        'gas': 1000001,
         'gasPrice': web3.toWei('0', 'gwei'),
         'data' : string_to_hex(message),
     }
-    signed_tx = web3.eth.account.signTransaction(tx)
+    signed_tx = web3.eth.account.signTransaction(tx, bc_key)
     #print('signed tx:', signed_tx) # just for debugging
     tx_hash = web3.eth.sendRawTransaction(signed_tx.rawTransaction)
     return tx_hash
@@ -46,19 +46,23 @@ def get_public_keys(web3, start, end):
     block_number = start
     while block_number < end:
         if len(web3.eth.getBlock(block_number).transactions) != 0:
+            # print(block_number)
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             # need to find sender of the transaction here (better way of doing this is welcome)
+            print(transaction.input)
             message = hex_to_string(transaction.input)
             sender_id = transaction['from']
             #FIGURE OUT BYTESTRING BIT
-            if str(message, 'utf-8').split()[0] == "00":
-                message = message.strip().split()
+            if message.decode().split('|')[0] == "00":
+                message = message.split(str.encode("|"))
+                print(message)
                 key = serialization.load_pem_public_key(
                     message[-1],
                     backend=default_backend()
                 )
                 public_keys[sender_id] = key
+        block_number += 1
 
     return public_keys
 
@@ -91,7 +95,7 @@ def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous)
             # if not sender_id:
             #     # case when malicious participant sends an incorrect signature
             #     continue
-            message = message.strip().split()
+            message = message.strip().split('|')
             if message[0] == "01":
                 if message[-1].isdigit():
                     contestants.add(int(message[-1]))
@@ -116,10 +120,10 @@ def non_encrypted_factors(web3, private_key, start, end):
             if transaction['from'] in legit_votes:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split()[0] == "03":
+            elif rsa_decrypt(message, private_key).split('|')[0] == "03":
                 pass
-            elif str(message, 'utf-8').split()[0] == "03":
-                message = message.strip().split()
+            elif str(message, 'utf-8').split('|')[0] == "03":
+                message = message.strip().split('|')
                 non_encrypted_factors.add(int(message[-1])) 
                 non_encrypted_factors.add(int(message[-2]))
             legit_votes.add(transaction['from'])
@@ -159,7 +163,7 @@ def find_votes(web3, private_key, start, end):
             if transaction['from'] in legit_factors:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split()[0] == "03":
+            elif rsa_decrypt(message, private_key).split('|')[0] == "03":
                 # legit voters
                 message = message.strip().split()
                 # legit_factors.add(int(message[-1])) 
@@ -167,8 +171,8 @@ def find_votes(web3, private_key, start, end):
                 # FACTORS ARE NOW LIST OF TUPLES
                 legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
 
-            elif str(message, 'utf-8').split()[0] == "03":
-                message = message.strip().split()
+            elif str(message, 'utf-8').split('|')[0] == "03":
+                message = message.strip().split('|')
                 non_encrypted_factors.add(int(message[-1])) 
                 non_encrypted_factors.add(int(message[-2]))
         block_number+= 1

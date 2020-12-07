@@ -7,14 +7,14 @@ from proof_function import *
 
 #constant parameters
 start_block = 1
-phase_0_end = 100
-inter_phase_0_end = 200
-phase_1_end = 300
-inter_phase_1_end = 700
-phase_2_end = 1000
-inter_phase_2_mid = 1400
-inter_phase_2_end = 1800    #1400 is an in-between milestone?
-phase_3_end = 2100
+phase_0_end = 10
+inter_phase_0_end = 20
+phase_1_end = 30
+inter_phase_1_end = 40
+phase_2_end = 180
+inter_phase_2_mid = 210
+inter_phase_2_end = 240    #1400 is an in-between milestone?
+phase_3_end = 300
 
 # protocol flags
 anonymous = True
@@ -38,6 +38,10 @@ web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/pri
 account_1 = web3.eth.accounts[0]
 web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
 
+with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
+    encrypted_key = keyfile.read()
+    bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
+
 
 # script to turn-on mining --  we will do the enode connection beforehand and just turn on mining at this point if possible
 web3.geth.miner.start(1)
@@ -47,11 +51,14 @@ print("Mining started")
 
 #phase 0: blocks 1-100 -- publish public key
 if anonymous:
-    message = str.encode("00 ") + public_key.public_bytes(
+    message = str.encode("00|") + public_key.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    sendTransaction(web3, account_1, message, private_key)
+    sendTransaction(web3, account_1, message, private_key, bc_key)
+
+if debug:
+    print('sent transaction')
 
 #wait for next phase
 while web3.eth.blockNumber < phase_0_end:
@@ -65,6 +72,8 @@ if anonymous:
     public_keys = get_public_keys(web3, start_block, phase_0_end)
     # voters = len(public_keys)
 
+if debug:
+    print('got public keys')
 #wait for next phase
 while web3.eth.blockNumber < inter_phase_0_end:
     continue
@@ -74,15 +83,17 @@ if debug:
 
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
-    message = str.encode("01 Contestant id: {}".format(participant_id))  
-    sendTransaction(web3, account_1, message, private_key)
+    message = str.encode("01| Contestant id: |{}".format(participant_id))  
+    sendTransaction(web3, account_1, message, private_key, bc_key)
 
 if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
-    message = str.encode("02 Voter id: {} {}".format(participant_id, n_i))
-    sendTransaction(web3, account_1, message, private_key)
+    message = str.encode("02| Voter id: |{}|{}".format(participant_id, n_i))
+    sendTransaction(web3, account_1, message, private_key, bc_key)
 
+if debug:
+    print('published product')
 #wait for next phase
 while web3.eth.blockNumber < phase_1_end:
     continue
@@ -117,14 +128,14 @@ vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a ti
 
 if anonymous:
     # send encrypted votes
-    message = str.encode("03 {} {}".format(prime_pair[0], prime_pair[1]))
+    message = str.encode("03|{}|{}".format(prime_pair[0], prime_pair[1]))
     contestant_pk = public_keys[vote] # contestant is the person to vote
     encrypted_message = rsa_encrypt(message, contestant_pk)
-    sendTransaction(web3, account_1, encrypted_message, private_key) # potential issue -- need to convert bytes to hex
+    sendTransaction(web3, account_1, encrypted_message, private_key, bc_key) # potential issue -- need to convert bytes to hex
 
 else:
-    message = str.encode("03 vote: {}".format(vote))
-    sendTransaction(web3, account_1, message, private_key)
+    message = str.encode("03|vote:|{}".format(vote))
+    sendTransaction(web3, account_1, message, private_key, bc_key)
 
 #wait for next phase
 while web3.eth.blockNumber < phase_2_end:
