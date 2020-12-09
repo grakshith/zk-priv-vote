@@ -8,7 +8,7 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 1210
+start_block = 1445
 phase_0_end = start_block + 20
 inter_phase_0_end = start_block + 40
 phase_1_end = start_block + 60
@@ -19,7 +19,7 @@ inter_phase_2_end = start_block + 140    #1400 is an in-between milestone?
 phase_3_end = start_block + 160
 
 # protocol flags
-anonymous = False
+anonymous = True
 debug = True
 contestant = True
 
@@ -63,7 +63,7 @@ if anonymous:
     )
     sendTransaction(web3, account_1, message, bc_key, private_key)
 else:
-    message = str.encode("00")
+    message = str.encode("00|")
     sendTransaction(web3, account_1, message, bc_key)
 
 if debug:
@@ -105,6 +105,9 @@ if contestant:
 
 time.sleep(15)
 
+if contestant:
+    my_id = web3.eth.getTransaction(txhash)['from']
+
 if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
@@ -141,7 +144,8 @@ while web3.eth.blockNumber < inter_phase_1_end:
     continue
 
 if debug:
-    print('puzzles: ', participants_ni)
+    if anonymous:
+        print('puzzles: ', participants_ni)
     print("Inter Phase 1 done.")
 
 # phase 2 -- blocks 701 - 1000 -- voting 
@@ -174,8 +178,21 @@ if contestant and anonymous:
     discard_factors, legit_factors, del_list = find_votes(web3, private_key, inter_phase_1_end + 1, phase_2_end)
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
 
+    list_factors = []
+    for i in legit_factors:
+        for x in i:
+            list_factors.append(x)
     # call proof function with N, legit factors and voters
-    # subprocess.call(["python3", "proof_function.py", str()])
+    subprocess.call(["python3", "proof_function.py", "{}|{}".format(N, voters), "|".join(list_factors)])
+    with open ('pysnark_log', "r") as f:
+        proof = f.read()
+    with open ('pysnark_vk', "r") as f:
+        vk = f.read()
+    with open ('pysnark_pubvals', "r") as f:
+        pubvals = f.read()
+    message = str.encode("04|" + proof + "|" + vk + "|" + pubvals)
+    sendTransaction(web3, account_1, message, bc_key, private_key)
+
 
 elif anonymous:
     # Voter in anonymous protocol: update N, voters
@@ -184,8 +201,8 @@ elif anonymous:
 
 else:
     # candidate or voter in non-anonymous
-    vote_count = get_vote_count(web3, contestants, inter_phase_1_end+1, phase_2_end)
-    if contestant:
+    vote_count = get_vote_count(web3, contestants, inter_phase_1_end + 1, phase_2_end)
+    if contestant and vote_count[my_id] > threshold:
         message = str.encode("04|Winner")
         sendTransaction(web3, account_1, message, bc_key)
 
@@ -203,7 +220,16 @@ while web3.eth.blockNumber < inter_phase_2_end:
 
 if anonymous:
     # honest agents should verify proofs and put true or false on the blockchain
-    pass
+    # pass
+    proofs = get_proofs(web3, contestants, inter_phase_2_end+1, phase_3_end)
+    for proof in proofs:
+        with open('pysnark_log', "w") as f:
+            f.write(proof[0])
+        with open('pysnark_vk', "w") as f:
+            f.write(proof[1])
+        with open('pysnark_pubvals', "w") as f:
+            f.write(proof[2])
+        subprocess.call(["python3", "verify.py"])
 
 else:
     # honest agents publish true or false

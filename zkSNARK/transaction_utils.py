@@ -29,9 +29,9 @@ def sendTransaction(web3, account, message, bc_key, private_key = None):
         signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format 
     if private_key:
-        message = message + str.encode("--") + signature
-    else:
         message = message #+ str.encode("--") + signature
+    else:
+        message = message
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 
@@ -262,3 +262,20 @@ def get_winners(web3, contestants, start, end):
     for winner in winners_id:
         winners.append(contestants.index(winner))
     return winners
+
+
+def get_proofs(web3, contestants, start, end):
+    proofs = []
+    block_number = start
+    while block_number < end:
+        if len(web3.eth.getBlock(block_number).transactions) != 0:
+            block_hash = web3.eth.getBlock(block_number).transactions[0]
+            transaction = web3.eth.getTransaction(block_hash)
+            message = hex_to_string(transaction.input)
+            if message.split(str.encode("|"))[0].decode() == "04":
+                # record winner
+                message = message.decode()
+                proofs.append(message.split("|")[1:])
+
+        block_number +=1
+    return proofs
