@@ -1,0 +1,4 @@
+__pycache__/
+my_pysnark/__pycache__/
+my_pysnark/libsnark/__pycache__/
+pysnark_*
