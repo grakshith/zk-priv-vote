@@ -54,7 +54,7 @@ def get_public_keys(web3, start, end):
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
             # need to find sender of the transaction here (better way of doing this is welcome)
-            print(transaction.input)
+            # print(transaction.input)
             message = hex_to_string(transaction.input)
             sender_id = transaction['from']
             #FIGURE OUT BYTESTRING BIT

@@ -66,10 +66,11 @@ def checkEqual(x, y):
 	_ = BranchingValues()
 
 	r1 = (x == y)
+	_.x = 0
 	if _if(r1):
 		_.x = 1
-	if _else():
-		_.x = 0
+	#if _else():
+	#	_.x = 0
 	_endif()
 
 	return _.x
@@ -120,12 +121,15 @@ def votes(x, y):
 	# print('out')
 
 	#Inefficient code with sum instead of breaking
+	
+	#if _if(len(y) > 1):
 	for i in _range(len(y)-1, max = len(y)-1):
 		for j in _range(i+1, len(y), max = len(y)):
 			# print(y[i], y[j])
 			val += tuple_compare(y[i], y[j])
 		_endfor()
 	_endfor()
+	#_endif()
 
 	_.v2 = checkEqual(0, val)
 
@@ -184,8 +188,8 @@ def votes(x, y):
 # y = [(3,3),(3,4),(2,2)]
 
 # Divisible
-x = [96, 3]
-y = [(2,4),(2,2)]
+# x = [96, 2]
+# y = [(2,4), (2,2)]
 
 
 def generate_inputs(numVoters, param):
@@ -217,8 +221,8 @@ while i < len(temp):
 	i+=2
 
 # print('out2')
-print(x)
-print(y)
+print("x:", x)
+print("y:",y)
 votes(x, y)
 
 # vk, proof, pubvals = backend.prove()

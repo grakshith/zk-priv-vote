@@ -1,6 +1,6 @@
 import sys
 import libsnark.alt_bn128 as backend
-import bpython
+#import bpython
 
 zk_verify = backend.zk_verifier_strong_IC
 
