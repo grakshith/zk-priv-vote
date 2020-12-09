@@ -23,11 +23,15 @@ def hex_to_string(s):
 
 # send transaction on the blockchain
 
-def sendTransaction(web3, account, message, private_key, bc_key):
+def sendTransaction(web3, account, message, bc_key, private_key = None):
     nonce_1 = web3.eth.getTransactionCount(account)
-    signature = rsa_sign(message, private_key)
+    if private_key:
+        signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format 
-    message = message #+ str.encode("--") + signature
+    if private_key:
+        message = message + str.encode("--") + signature
+    else:
+        message = message #+ str.encode("--") + signature
     tx = {
         'nonce': nonce_1,
         'value': web3.toWei(0, 'ether'), 
@@ -65,6 +69,27 @@ def get_public_keys(web3, start, end):
         block_number += 1
 
     return public_keys
+
+def list_voters(web3, start, end):
+    voter_list = []
+    block_number = start
+    while block_number < end:
+        if len(web3.eth.getBlock(block_number).transactions) != 0:
+            # print(block_number)
+            block_hash = web3.eth.getBlock(block_number).transactions[0]
+            transaction = web3.eth.getTransaction(block_hash)
+            # need to find sender of the transaction here (better way of doing this is welcome)
+            # print(transaction.input)
+            message = hex_to_string(transaction.input)
+            sender_id = transaction['from']
+            #FIGURE OUT BYTESTRING BIT
+            if message.decode() == "00":
+                voter_list.append(sender_id)
+                
+        block_number += 1
+
+    return voter_list
+
 
 # find sender of the message by checking signature
 def find_sender(message, public_keys):
@@ -161,9 +186,7 @@ def find_votes(web3, private_key, start, end):
         if len(web3.eth.getBlock(block_number).transactions) != 0:
             block_hash = web3.eth.getBlock(block_number).transactions[0]
             transaction = web3.eth.getTransaction(block_hash)
-            message = hex_to_string(transaction.input)
-            print(type(rsa_decrypt(message, private_key)))  # debug statement
-            
+            message = hex_to_string(transaction.input)            
             if transaction['from'] in legit_factors:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
@@ -173,7 +196,7 @@ def find_votes(web3, private_key, start, end):
             #     non_encrypted_factors.add(int(message[-2].decode()))
             else:
                 try:
-                    if rsa_decrypt(message, private_key).split("|")[0] == 03:
+                    if rsa_decrypt(message, private_key).split("|")[0] == "03":
                         message = rsa_decrypt(message, private_key).strip().split("|")
                     # legit_factors.add(int(message[-1])) 
                     # legit_factors.add(int(message[-2]))

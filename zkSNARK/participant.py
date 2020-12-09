@@ -8,18 +8,18 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 845
-phase_0_end = start_block+15
-inter_phase_0_end = start_block + 30
-phase_1_end = start_block + 45
-inter_phase_1_end = start_block + 60
-phase_2_end = start_block + 75
-inter_phase_2_mid = start_block + 90
-inter_phase_2_end = start_block + 105    #1400 is an in-between milestone?
-phase_3_end = start_block + 120
+start_block = 1210
+phase_0_end = start_block + 20
+inter_phase_0_end = start_block + 40
+phase_1_end = start_block + 60
+inter_phase_1_end = start_block + 80
+phase_2_end = start_block + 100
+inter_phase_2_mid = start_block + 120
+inter_phase_2_end = start_block + 140    #1400 is an in-between milestone?
+phase_3_end = start_block + 160
 
 # protocol flags
-anonymous = True
+anonymous = False
 debug = True
 contestant = True
 
@@ -28,7 +28,8 @@ public_keys = {}
 threshold = 2
 
 # participant details
-public_key, private_key = gen_keys()
+if anonymous: 
+    public_key, private_key = gen_keys()
 participant_id = 1
 
 # initial web3 setup
@@ -51,8 +52,8 @@ web3.geth.miner.start(1)
 
 print("Mining started")
 
-# while web3.eth.blockNumber < start_block:
-#     continue
+while web3.eth.blockNumber < start_block:
+    continue
 
 #phase 0: blocks 1-100 -- publish public key
 if anonymous:
@@ -60,7 +61,10 @@ if anonymous:
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
-    sendTransaction(web3, account_1, message, private_key, bc_key)
+    sendTransaction(web3, account_1, message, bc_key, private_key)
+else:
+    message = str.encode("00")
+    sendTransaction(web3, account_1, message, bc_key)
 
 if debug:
     print('sent transaction')
@@ -76,6 +80,9 @@ if debug:
 if anonymous:
     public_keys = get_public_keys(web3, start_block, phase_0_end)
     # voters = len(public_keys)
+else:
+    voter_list = list_voters(web3, start_block, phase_0_end)
+    voters = len(voter_list)
 
 if debug:
     print('got public keys')
@@ -91,7 +98,10 @@ if debug:
 if contestant:
     message = str.encode("01")   
     print("contestant message: ", message)
-    txhash = sendTransaction(web3, account_1, message, private_key, bc_key)
+    if anonymous:
+        txhash = sendTransaction(web3, account_1, message, bc_key, private_key)
+    else:
+        txhash = sendTransaction(web3, account_1, message, bc_key)
 
 time.sleep(15)
 
@@ -99,7 +109,7 @@ if anonymous:
     prime_pair = generate_prime_pair(16)
     n_i = prime_pair[0] * prime_pair[1]
     message = str.encode("02|{}".format(n_i))
-    sendTransaction(web3, account_1, message, private_key, bc_key)
+    sendTransaction(web3, account_1, message, bc_key, private_key)
 
 if debug:
     print('published product')
@@ -114,7 +124,8 @@ if debug:
 
 #Stores only most recent puzzle put on bc because of dictionary
 contestants, participants_ni = gather_contestants_participants_ni(web3, public_keys, phase_0_end+1, phase_1_end, anonymous)
-voters = len(participants_ni)
+if anonymous:
+    voters = len(participants_ni)
 
 print("contestants: ")
 for i, c in enumerate(contestants):
@@ -142,11 +153,11 @@ if anonymous:
     message = "03|{}|{}".format(prime_pair[0], prime_pair[1])
     contestant_pk = public_keys[contestants[vote]] 
     encrypted_message = rsa_encrypt(message, contestant_pk)
-    sendTransaction(web3, account_1, encrypted_message, private_key, bc_key) # potential issue -- need to convert bytes to hex
+    sendTransaction(web3, account_1, encrypted_message, bc_key, private_key) # potential issue -- need to convert bytes to hex
 
 else:
     message = str.encode("03|vote:|{}".format(vote))
-    sendTransaction(web3, account_1, message, private_key, bc_key)
+    sendTransaction(web3, account_1, message, bc_key)
 
 #wait for next phase
 while web3.eth.blockNumber < phase_2_end:
@@ -164,7 +175,7 @@ if contestant and anonymous:
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
 
     # call proof function with N, legit factors and voters
-
+    # subprocess.call(["python3", "proof_function.py", str()])
 
 elif anonymous:
     # Voter in anonymous protocol: update N, voters
@@ -176,11 +187,12 @@ else:
     vote_count = get_vote_count(web3, contestants, inter_phase_1_end+1, phase_2_end)
     if contestant:
         message = str.encode("04|Winner")
-        sendTransaction(web3, account_1, message, private_key, bc_key)
+        sendTransaction(web3, account_1, message, bc_key)
 
 if debug:
     print("Inter Phase 2 done.")
-    print("New N: ", N)
+    if anonymous:
+        print("New N: ", N)
     print("New voters: ", voters)
 
 #wait for next phase
@@ -202,6 +214,6 @@ else:
             non_winners.add(claimed_winner)
     for non_winner in non_winners:
         message = str.encode("False|{}".format(non_winner))
-        sendTransaction(web3, account_1, message, private_key, bc_key)
+        sendTransaction(web3, account_1, message, bc_key)
 
 
