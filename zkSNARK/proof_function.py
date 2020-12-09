@@ -205,7 +205,17 @@ def generate_inputs(numVoters, param):
 	# print("Generate inputs CPU time: "+str(end_time - start_time))
 	return x, y, (end_time - start_time)
 
-x, y, _ = generate_inputs(10, 16)
+#Process input
+a = sys.argv[1]
+b = sys.argv[2]
+x = [int(i) for i in a.split("|")]
+temp = b.split("|")
+i = 0
+y = []
+while i < len(temp):
+	y.append((temp[i], temp[i+1]))
+	i+=2
+
 # print('out2')
 # print(x)
 # print(y)
