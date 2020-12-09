@@ -8,15 +8,16 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 1445
-phase_0_end = start_block + 20
-inter_phase_0_end = start_block + 40
-phase_1_end = start_block + 60
-inter_phase_1_end = start_block + 80
-phase_2_end = start_block + 100
-inter_phase_2_mid = start_block + 120
-inter_phase_2_end = start_block + 140    #1400 is an in-between milestone?
-phase_3_end = start_block + 160
+start_block = 1600
+offset = 2
+phase_0_end = start_block + 2*offset
+inter_phase_0_end = start_block + 4*offset
+phase_1_end = start_block + 6*offset
+inter_phase_1_end = start_block + 8*offset
+phase_2_end = start_block + 10*offset
+inter_phase_2_mid = start_block + 12*offset
+inter_phase_2_end = start_block + 14*offset    #1400 is an in-between milestone?
+phase_3_end = start_block + 16*offset
 
 # protocol flags
 anonymous = True
@@ -24,27 +25,27 @@ debug = True
 contestant = True
 
 # dict of public keys of all participants and winning threshold
-public_keys = {}  
+public_keys = {}
 threshold = 2
 
 # participant details
-if anonymous: 
+if anonymous:
     public_key, private_key = gen_keys()
 participant_id = 1
 
 # initial web3 setup
 # web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
-# web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc')) 
-web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
+web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc'))
+# web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
 
 account_1 = web3.eth.accounts[0]
-web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
+web3.geth.personal.unlock_account(web3.eth.accounts[0], "1234")
 
 # with open('/home/chinmay/.ethereum/net2020/keystore/UTC--2020-12-05T08-59-15.727899516Z--00b74e369f5c7c6edd99ba302b1b309cbe8a46ac') as keyfile:
-# with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile: 
-with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
+with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile:
+# with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
     encrypted_key = keyfile.read()
-    bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
+    bc_key = web3.eth.account.decrypt(encrypted_key, '1234')
 
 
 # script to turn-on mining --  participant.py should be run after connecting peers manually using enode
@@ -96,7 +97,7 @@ if debug:
 
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
-    message = str.encode("01")   
+    message = str.encode("01")
     print("contestant message: ", message)
     if anonymous:
         txhash = sendTransaction(web3, account_1, message, bc_key, private_key)
@@ -148,14 +149,14 @@ if debug:
         print('puzzles: ', participants_ni)
     print("Inter Phase 1 done.")
 
-# phase 2 -- blocks 701 - 1000 -- voting 
+# phase 2 -- blocks 701 - 1000 -- voting
 vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a timeout because if a voter takes more time it is her loss
 
 
 if anonymous:
     # send encrypted votes
     message = "03|{}|{}".format(prime_pair[0], prime_pair[1])
-    contestant_pk = public_keys[contestants[vote]] 
+    contestant_pk = public_keys[contestants[vote]]
     encrypted_message = rsa_encrypt(message, contestant_pk)
     sendTransaction(web3, account_1, encrypted_message, bc_key, private_key) # potential issue -- need to convert bytes to hex
 
@@ -177,11 +178,12 @@ if contestant and anonymous:
     # update N, voters; gather legit votes; construct proof
     discard_factors, legit_factors, del_list = find_votes(web3, private_key, inter_phase_1_end + 1, phase_2_end)
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
-
+    print(N, voters)
     list_factors = []
-    for i in legit_factors:
+    print(legit_factors)
+    for i in legit_factors.values():
         for x in i:
-            list_factors.append(x)
+            list_factors.append(str(x))
     # call proof function with N, legit factors and voters
     subprocess.call(["python3", "proof_function.py", "{}|{}".format(N, voters), "|".join(list_factors)])
     with open ('pysnark_log', "r") as f:

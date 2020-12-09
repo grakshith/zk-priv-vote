@@ -213,12 +213,12 @@ temp = b.split("|")
 i = 0
 y = []
 while i < len(temp):
-	y.append((temp[i], temp[i+1]))
+	y.append((int(temp[i]), int(temp[i+1])))
 	i+=2
 
 # print('out2')
-# print(x)
-# print(y)
+print(x)
+print(y)
 votes(x, y)
 
 # vk, proof, pubvals = backend.prove()
