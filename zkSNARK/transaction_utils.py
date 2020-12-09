@@ -19,7 +19,7 @@ def hex_to_string(s):
     string = bytes.fromhex(s[2:])
     return string
 
-    
+
 
 # send transaction on the blockchain
 
@@ -27,14 +27,14 @@ def sendTransaction(web3, account, message, bc_key, private_key = None):
     nonce_1 = web3.eth.getTransactionCount(account)
     if private_key:
         signature = rsa_sign(message, private_key)
-    # message = message + "--"  + signature # change signature format 
+    # message = message + "--"  + signature # change signature format
     if private_key:
         message = message #+ str.encode("--") + signature
     else:
         message = message
     tx = {
         'nonce': nonce_1,
-        'value': web3.toWei(0, 'ether'), 
+        'value': web3.toWei(0, 'ether'),
         'gas': 1000001,
         'gasPrice': web3.toWei('0', 'gwei'),
         'data' : string_to_hex(message),
@@ -49,23 +49,25 @@ def get_public_keys(web3, start, end):
     public_keys = {}
     block_number = start
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
             # print(block_number)
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            # need to find sender of the transaction here (better way of doing this is welcome)
-            # print(transaction.input)
-            message = hex_to_string(transaction.input)
-            sender_id = transaction['from']
-            #FIGURE OUT BYTESTRING BIT
-            if message.decode().split('|')[0] == "00":
-                message = message.split(str.encode("|"))
-                # print(message)
-                key = serialization.load_pem_public_key(
-                    message[-1],
-                    backend=default_backend()
-                )
-                public_keys[sender_id] = key
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                # need to find sender of the transaction here (better way of doing this is welcome)
+                # print(transaction.input)
+                message = hex_to_string(transaction.input)
+                sender_id = transaction['from']
+                #FIGURE OUT BYTESTRING BIT
+                if message.decode().split('|')[0] == "00":
+                    message = message.split(str.encode("|"))
+                    # print(message)
+                    key = serialization.load_pem_public_key(
+                        message[-1],
+                        backend=default_backend()
+                    )
+                    public_keys[sender_id] = key
         block_number += 1
 
     return public_keys
@@ -74,18 +76,20 @@ def list_voters(web3, start, end):
     voter_list = []
     block_number = start
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
             # print(block_number)
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            # need to find sender of the transaction here (better way of doing this is welcome)
-            # print(transaction.input)
-            message = hex_to_string(transaction.input)
-            sender_id = transaction['from']
-            #FIGURE OUT BYTESTRING BIT
-            if message.decode() == "00":
-                voter_list.append(sender_id)
-                
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                # need to find sender of the transaction here (better way of doing this is welcome)
+                # print(transaction.input)
+                message = hex_to_string(transaction.input)
+                sender_id = transaction['from']
+                #FIGURE OUT BYTESTRING BIT
+                if message.decode() == "00":
+                    voter_list.append(sender_id)
+
         block_number += 1
 
     return voter_list
@@ -104,32 +108,34 @@ def find_sender(message, public_keys):
 def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous):
     # note -> contestants list is an identical ORDERED list for all participants --> useful fact for non-secure voting
     contestants = []
-    if anonymous: participants_ni = {} 
+    if anonymous: participants_ni = {}
     else:
         participants_ni = None
     block_number = start
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            # need to find sender of the transaction here (better way of doing this is welcome)
-            message = hex_to_string(transaction.input)
-            # message, sender_id = find_sender(message, public_keys)
-            #ADD IN VERIFICATION
-            sender_id = transaction['from']
-            
-            # if not sender_id:
-            #     # case when malicious participant sends an incorrect signature
-            #     continue
-            message = message.strip().split(str.encode("|"))
-            print('msg: ', message)
-            if message[0].decode() == "01":
-                if message[-1].decode().isdigit():
-                    contestants.append(sender_id)
-            if anonymous and message[0].decode() == "02":
-                # valid n_i message
-                if message[-1].decode().isdigit():
-                    participants_ni[sender_id] = int(message[-1].decode())
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                # need to find sender of the transaction here (better way of doing this is welcome)
+                message = hex_to_string(transaction.input)
+                # message, sender_id = find_sender(message, public_keys)
+                #ADD IN VERIFICATION
+                sender_id = transaction['from']
+
+                # if not sender_id:
+                #     # case when malicious participant sends an incorrect signature
+                #     continue
+                message = message.strip().split(str.encode("|"))
+                print('msg: ', message)
+                if message[0].decode() == "01":
+                    if message[-1].decode().isdigit():
+                        contestants.append(sender_id)
+                if anonymous and message[0].decode() == "02":
+                    # valid n_i message
+                    if message[-1].decode().isdigit():
+                        participants_ni[sender_id] = int(message[-1].decode())
         block_number += 1
     return list(set(contestants)), participants_ni
 
@@ -140,20 +146,22 @@ def non_encrypted_factors(web3, private_key, start, end):
     legit_votes = set()
     del_list = []
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            message = hex_to_string(transaction.input)
-            if transaction['from'] in legit_votes:
-                #Repeated vote, record the participant
-                del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
-                pass
-            elif message.split('|')[0].decode() == "03":
-                message = message.strip().split('|')
-                non_encrypted_factors.add(int(message[-1])) 
-                non_encrypted_factors.add(int(message[-2]))
-            legit_votes.add(transaction['from'])
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                message = hex_to_string(transaction.input)
+                if transaction['from'] in legit_votes:
+                    #Repeated vote, record the participant
+                    del_list.append(transaction['from'])
+                elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
+                    pass
+                elif message.split('|')[0].decode() == "03":
+                    message = message.strip().split('|')
+                    non_encrypted_factors.add(int(message[-1]))
+                    non_encrypted_factors.add(int(message[-2]))
+                legit_votes.add(transaction['from'])
         block_number+= 1
 
     return non_encrypted_factors, list(set(del_list))
@@ -183,27 +191,29 @@ def find_votes(web3, private_key, start, end):
     del_list = []
     block_number = start
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            message = hex_to_string(transaction.input)            
-            if transaction['from'] in legit_factors:
-                #Repeated vote, record the participant
-                del_list.append(transaction['from'])
-            # elif message.split(str.encode("|"))[0].decode() == "03":
-            #     message = message.strip().split(str.encode("|"))
-            #     non_encrypted_factors.add(int(message[-1].decode())) 
-            #     non_encrypted_factors.add(int(message[-2].decode()))
-            else:
-                try:
-                    if rsa_decrypt(message, private_key).split("|")[0] == "03":
-                        message = rsa_decrypt(message, private_key).strip().split("|")
-                    # legit_factors.add(int(message[-1])) 
-                    # legit_factors.add(int(message[-2]))
-                    # FACTORS ARE NOW LIST OF TUPLES
-                    legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
-                except:
-                    pass
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                message = hex_to_string(transaction.input)
+                if transaction['from'] in legit_factors:
+                    #Repeated vote, record the participant
+                    del_list.append(transaction['from'])
+                # elif message.split(str.encode("|"))[0].decode() == "03":
+                #     message = message.strip().split(str.encode("|"))
+                #     non_encrypted_factors.add(int(message[-1].decode()))
+                #     non_encrypted_factors.add(int(message[-2].decode()))
+                else:
+                    try:
+                        if rsa_decrypt(message, private_key).split("|")[0] == "03":
+                            message = rsa_decrypt(message, private_key).strip().split("|")
+                        # legit_factors.add(int(message[-1]))
+                        # legit_factors.add(int(message[-2]))
+                        # FACTORS ARE NOW LIST OF TUPLES
+                        legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
+                    except:
+                        pass
 
         block_number+= 1
 
@@ -248,13 +258,15 @@ def get_winners(web3, contestants, start, end):
     winners_id = set()
     block_number = start
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            message = hex_to_string(transaction.input)
-            if message.split(str.encode("|"))[0].decode() == "04":
-                # record winner
-                winners_id.add(transaction['from'])
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                message = hex_to_string(transaction.input)
+                if message.split(str.encode("|"))[0].decode() == "04":
+                    # record winner
+                    winners_id.add(transaction['from'])
         block_number += 1
 
     # winner indices from the list of contestants
@@ -268,14 +280,16 @@ def get_proofs(web3, contestants, start, end):
     proofs = []
     block_number = start
     while block_number < end:
-        if len(web3.eth.getBlock(block_number).transactions) != 0:
-            block_hash = web3.eth.getBlock(block_number).transactions[0]
-            transaction = web3.eth.getTransaction(block_hash)
-            message = hex_to_string(transaction.input)
-            if message.split(str.encode("|"))[0].decode() == "04":
-                # record winner
-                message = message.decode()
-                proofs.append(message.split("|")[1:])
+        num_transactions = len(web3.eth.getBlock(block_number).transactions)
+        if num_transactions != 0:
+            for i in range(num_transactions):
+                block_hash = web3.eth.getBlock(block_number).transactions[i]
+                transaction = web3.eth.getTransaction(block_hash)
+                message = hex_to_string(transaction.input)
+                if message.split(str.encode("|"))[0].decode() == "04":
+                    # record winner
+                    message = message.decode()
+                    proofs.append(message.split("|")[1:])
 
         block_number +=1
     return proofs

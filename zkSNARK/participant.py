@@ -8,7 +8,7 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 1850
+start_block = 10
 offset = 10
 phase_0_end = start_block + 2*offset
 inter_phase_0_end = start_block + 4*offset
@@ -34,18 +34,20 @@ if anonymous:
 participant_id = 1
 
 # initial web3 setup
-web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
-# web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc'))
+# web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
+web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc'))
 # web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
 
 account_1 = web3.eth.accounts[0]
-web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
+# web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
+web3.geth.personal.unlock_account(web3.eth.accounts[0], "1234")
 
-with open('/home/chinmay/.ethereum/net2020/keystore/UTC--2020-12-05T08-59-15.727899516Z--00b74e369f5c7c6edd99ba302b1b309cbe8a46ac') as keyfile:
-# with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile:
+# with open('/home/chinmay/.ethereum/net2020/keystore/UTC--2020-12-05T08-59-15.727899516Z--00b74e369f5c7c6edd99ba302b1b309cbe8a46ac') as keyfile:
+with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile:
 # with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
     encrypted_key = keyfile.read()
-    bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
+    # bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
+    bc_key = web3.eth.account.decrypt(encrypted_key, '1234')
 
 
 # script to turn-on mining --  participant.py should be run after connecting peers manually using enode
