@@ -8,15 +8,15 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 1
-phase_0_end = 10
-inter_phase_0_end = 20
-phase_1_end = 30
-inter_phase_1_end = 40
-phase_2_end = 50
-inter_phase_2_mid = 60
-inter_phase_2_end = 70    #1400 is an in-between milestone?
-phase_3_end = 80
+start_block = 845
+phase_0_end = start_block+15
+inter_phase_0_end = start_block + 30
+phase_1_end = start_block + 45
+inter_phase_1_end = start_block + 60
+phase_2_end = start_block + 75
+inter_phase_2_mid = start_block + 90
+inter_phase_2_end = start_block + 105    #1400 is an in-between milestone?
+phase_3_end = start_block + 120
 
 # protocol flags
 anonymous = True
@@ -33,11 +33,14 @@ participant_id = 1
 
 # initial web3 setup
 # web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
+# web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc')) 
 web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
 
 account_1 = web3.eth.accounts[0]
 web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
 
+# with open('/home/chinmay/.ethereum/net2020/keystore/UTC--2020-12-05T08-59-15.727899516Z--00b74e369f5c7c6edd99ba302b1b309cbe8a46ac') as keyfile:
+# with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile: 
 with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
     encrypted_key = keyfile.read()
     bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
@@ -48,6 +51,8 @@ web3.geth.miner.start(1)
 
 print("Mining started")
 
+# while web3.eth.blockNumber < start_block:
+#     continue
 
 #phase 0: blocks 1-100 -- publish public key
 if anonymous:
@@ -74,6 +79,7 @@ if anonymous:
 
 if debug:
     print('got public keys')
+    print(public_keys)
 #wait for next phase
 while web3.eth.blockNumber < inter_phase_0_end:
     continue
@@ -84,10 +90,10 @@ if debug:
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
     message = str.encode("01")   
-    print(message)
+    print("contestant message: ", message)
     txhash = sendTransaction(web3, account_1, message, private_key, bc_key)
 
-time.sleep(10)
+time.sleep(15)
 
 if anonymous:
     prime_pair = generate_prime_pair(16)
@@ -124,7 +130,7 @@ while web3.eth.blockNumber < inter_phase_1_end:
     continue
 
 if debug:
-    print(participants_ni)
+    print('puzzles: ', participants_ni)
     print("Inter Phase 1 done.")
 
 # phase 2 -- blocks 701 - 1000 -- voting 

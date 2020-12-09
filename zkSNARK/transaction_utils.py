@@ -56,7 +56,7 @@ def get_public_keys(web3, start, end):
             #FIGURE OUT BYTESTRING BIT
             if message.decode().split('|')[0] == "00":
                 message = message.split(str.encode("|"))
-                print(message)
+                # print(message)
                 key = serialization.load_pem_public_key(
                     message[-1],
                     backend=default_backend()
@@ -163,21 +163,25 @@ def find_votes(web3, private_key, start, end):
             transaction = web3.eth.getTransaction(block_hash)
             message = hex_to_string(transaction.input)
             print(type(rsa_decrypt(message, private_key)))  # debug statement
+            
             if transaction['from'] in legit_factors:
                 #Repeated vote, record the participant
                 del_list.append(transaction['from'])
-            elif rsa_decrypt(message, private_key).split("|")[0] == "03":
-                # legit voters
-                message = rsa_decrypt(message, private_key).strip().split("|")
-                # legit_factors.add(int(message[-1])) 
-                # legit_factors.add(int(message[-2]))
-                # FACTORS ARE NOW LIST OF TUPLES
-                legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
+            # elif message.split(str.encode("|"))[0].decode() == "03":
+            #     message = message.strip().split(str.encode("|"))
+            #     non_encrypted_factors.add(int(message[-1].decode())) 
+            #     non_encrypted_factors.add(int(message[-2].decode()))
+            else:
+                try:
+                    if rsa_decrypt(message, private_key).split("|")[0] == 03:
+                        message = rsa_decrypt(message, private_key).strip().split("|")
+                    # legit_factors.add(int(message[-1])) 
+                    # legit_factors.add(int(message[-2]))
+                    # FACTORS ARE NOW LIST OF TUPLES
+                    legit_factors[transaction['from']] = (int(message[-1]), int(message[-2]))
+                except:
+                    pass
 
-            elif message.split(str.encode("|"))[0].decode() == "03":
-                message = message.strip().split(str.encode("|"))
-                non_encrypted_factors.add(int(message[-1].decode())) 
-                non_encrypted_factors.add(int(message[-2].decode()))
         block_number+= 1
 
     #Delete the newest vote of participants who voted multiple times
