@@ -98,11 +98,16 @@ def list_voters(web3, start, end):
 
 # find sender of the message by checking signature
 def find_sender(message, transaction, public_keys):
-    message, signature = message.strip().split(str.encode("||"))
-    sender_id = transaction['from']
-    public_key = public_keys[sender_id]
-    if rsa_verify(message, signature, public_key):
-        return message
+    try:
+        message, signature = message.strip().split(str.encode("||"))
+        sender_id = transaction['from']
+        public_key = public_keys[sender_id]
+        if rsa_verify(message, signature, public_key):
+            return message
+    except:
+        # print(message.strip().split(str.encode("||")[0]).decode())
+        print(message.decode())
+    
     return None
 
 
@@ -161,12 +166,12 @@ def non_encrypted_factors(web3, public_keys, private_key, start, end):
                 if transaction['from'] in legit_votes:
                     #Repeated vote, record the participant
                     del_list.append(transaction['from'])
-                elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
-                    pass
-                elif message.split('|')[0].decode() == "03":
-                    message = message.strip().split('|')
-                    non_encrypted_factors.add(int(message[-1]))
-                    non_encrypted_factors.add(int(message[-2]))
+                # elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
+                #     pass
+                elif message.split(str.encode('|'))[0].decode() == "03":
+                    message = message.strip().split(str.encode('|'))
+                    non_encrypted_factors.add(int(str.decode(message[-1])))
+                    non_encrypted_factors.add(int(str.decode(message[-2])))
                 legit_votes.add(transaction['from'])
         block_number+= 1
 

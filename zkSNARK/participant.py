@@ -1,15 +1,18 @@
 import sys
 import time
+import json
 import subprocess
+import statistics
 from web3 import Web3
 from primes import generate_prime_pair
 from transaction_utils import *
 from crypto import *
 # from proof_function import *
 
+runtimes = {}
 #constant parameters
-start_block = 185
-offset = 3
+start_block = 100
+offset = 5
 phase_0_end = start_block + 2*offset
 inter_phase_0_end = start_block + 4*offset
 phase_1_end = start_block + 6*offset
@@ -26,8 +29,10 @@ contestant = True
 
 # dict of public keys of all participants and winning threshold
 public_keys = {}
-threshold = 0
+threshold = 1
 
+prog_start_time = time.process_time()
+start_time = time.process_time()
 # participant details
 if anonymous:
     public_key, private_key = gen_keys()
@@ -55,9 +60,12 @@ web3.geth.miner.start(1)
 
 print("Mining started")
 
+runtimes['setup'] = time.process_time() - start_time
+
 while web3.eth.blockNumber < start_block:
     continue
 
+start_time = time.process_time()
 #phase 0: blocks 1-100 -- publish public key
 if anonymous:
     message = str.encode("00|") + public_key.public_bytes(
@@ -72,6 +80,7 @@ else:
 if debug:
     print('sent transaction')
 
+runtimes['0a'] = time.process_time() - start_time
 #wait for next phase
 while web3.eth.blockNumber < phase_0_end:
     continue
@@ -79,6 +88,7 @@ while web3.eth.blockNumber < phase_0_end:
 if debug:
     print("Phase 0 done.")
 
+start_time = time.process_time()
 #intermediate-phase 0: gather all public keys
 if anonymous:
     public_keys = get_public_keys(web3, start_block, phase_0_end)
@@ -90,6 +100,7 @@ else:
 if debug:
     print('got public keys')
     print(public_keys)
+runtimes['0b'] = time.process_time() - start_time
 #wait for next phase
 while web3.eth.blockNumber < inter_phase_0_end:
     continue
@@ -97,6 +108,7 @@ while web3.eth.blockNumber < inter_phase_0_end:
 if debug:
     print("Inter Phase 0 done.")
 
+start_time = time.process_time()
 # phase 1: blocks 100-300 -- declare candidacy and publish product
 if contestant:
     message = str.encode("01")
@@ -120,6 +132,8 @@ if anonymous:
 
 if debug:
     print('published product')
+
+runtimes['1a'] = time.process_time() - start_time
 #wait for next phase
 while web3.eth.blockNumber < phase_1_end:
     continue
@@ -128,7 +142,7 @@ if debug:
     print("Phase 1 done.")
 
 # intermediate-phase 1 -- blocks 301-700 -- gather products to form N and gather list of contestants
-
+start_time = time.process_time()
 #Stores only most recent puzzle put on bc because of dictionary
 contestants, participants_ni = gather_contestants_participants_ni(web3, public_keys, phase_0_end+1, phase_1_end, anonymous)
 if anonymous:
@@ -143,6 +157,7 @@ if anonymous:
     for participant in participants_ni:
         N *= participants_ni[participant]
 
+runtimes['1b'] = time.process_time() - start_time
 #wait for next phase
 while web3.eth.blockNumber < inter_phase_1_end:
     continue
@@ -152,6 +167,7 @@ if debug:
         print('puzzles: ', participants_ni)
     print("Inter Phase 1 done.")
 
+start_time = time.process_time()
 # phase 2 -- blocks 701 - 1000 -- voting
 vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a timeout because if a voter takes more time it is her loss
 
@@ -168,6 +184,7 @@ else:
     message = str.encode("03|vote:|{}".format(vote))
     sendTransaction(web3, account_1, message, bc_key)
 
+runtimes['2'] = time.process_time() - start_time
 #wait for next phase
 while web3.eth.blockNumber < phase_2_end:
     continue
@@ -177,7 +194,7 @@ if debug:
 
 # intermediate phase 2 -- blocks 1001 - 1400 -- honest agents and contestants discard non-encrypted factors to compute new N, contestant count votes
 # blocks 1401 - 1800 -- contestants find proofs and share the proof
-
+start_time = time.process_time()
 if contestant and anonymous:
     # update N, voters; gather legit votes; construct proof
     discard_factors, legit_factors, del_list = find_votes(web3, public_keys, private_key, inter_phase_1_end + 1, phase_2_end)
@@ -199,7 +216,7 @@ if contestant and anonymous:
             pubvals = f.read()
         message = str.encode("04|" + proof + "|" + vk + "|" + pubvals)
         sendTransaction(web3, account_1, message, bc_key, private_key)
-
+        print('sent proof')
 
 elif anonymous:
     # Voter in anonymous protocol: update N, voters
@@ -219,12 +236,13 @@ if debug:
         print("New N: ", N)
     print("New voters: ", voters)
 
+runtimes['3'] = time.process_time() - start_time
 #wait for next phase
 while web3.eth.blockNumber < inter_phase_2_end:
     continue
 
 # phase 3 -- blocks 1801 - 2100 -- honest agents verify proofs (by checking blocks 1400- 1800) and determine the winner
-
+start_time = time.process_time()
 if anonymous:
     # honest agents should verify proofs and put true or false on the blockchain
     # pass
@@ -238,6 +256,7 @@ if anonymous:
             f.write(proof[2])
             # f.write(str(N) + '\n' + )
         subprocess.call(["python3", "verify.py"])
+    print('verification complete')
 
 else:
     # honest agents publish true or false
@@ -250,4 +269,8 @@ else:
         message = str.encode("False|{}".format(non_winner))
         sendTransaction(web3, account_1, message, bc_key)
 
+runtimes['4'] = time.process_time() - start_time
+runtimes['total'] = time.process_time() - prog_start_time
 
+
+print(json.dumps(runtimes))
