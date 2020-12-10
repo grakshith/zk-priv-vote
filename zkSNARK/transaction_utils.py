@@ -29,7 +29,7 @@ def sendTransaction(web3, account, message, bc_key, private_key = None):
         signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format
     if private_key:
-        message = message + str.encode("--") + signature
+        message = message + str.encode("||") + signature
     else:
         message = message
     tx = {
@@ -98,7 +98,7 @@ def list_voters(web3, start, end):
 
 # find sender of the message by checking signature
 def find_sender(message, transaction, public_keys):
-    message, signature = message.strip().split(str.encode("--"))
+    message, signature = message.strip().split(str.encode("||"))
     sender_id = transaction['from']
     public_key = public_keys[sender_id]
     if rsa_verify(message, signature, public_key):
@@ -142,7 +142,7 @@ def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous)
         block_number += 1
     return list(set(contestants)), participants_ni
 
-def non_encrypted_factors(web3, private_key, start, end):
+def non_encrypted_factors(web3, public_keys, private_key, start, end):
     # assumption --  these messages come in specified format
     non_encrypted_factors = set()
     block_number = start
@@ -190,7 +190,7 @@ def updated_voters(N, voters, discard_factors, participants_ni, del_list):
     voters = voters - counter // 2 # decrease number of legit voters to pass to the verification function
     return N, voters
 
-def find_votes(web3, private_key, start, end):
+def find_votes(web3, public_keys, private_key, start, end):
     non_encrypted_factors = set()
     # legit_factors = set()
     legit_factors = {}
@@ -233,7 +233,7 @@ def find_votes(web3, private_key, start, end):
     return non_encrypted_factors, legit_factors, del_list
 
 # for non-anonymous case, this function finds votes by non-malicious agents
-def get_vote_count(web3, contestants, start, end):
+def get_vote_count(web3, public_keys, contestants, start, end):
     legit_votes = dict()
     del_list = []
     block_number = start
@@ -285,7 +285,7 @@ def get_winners(web3, contestants, start, end):
     return winners
 
 
-def get_proofs(web3, contestants, start, end):
+def get_proofs(web3, public_keys, contestants, start, end):
     proofs = []
     block_number = start
     while block_number < end:

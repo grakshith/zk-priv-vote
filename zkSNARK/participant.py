@@ -8,8 +8,8 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 128
-offset = 2
+start_block = 185
+offset = 3
 phase_0_end = start_block + 2*offset
 inter_phase_0_end = start_block + 4*offset
 phase_1_end = start_block + 6*offset
@@ -35,19 +35,19 @@ participant_id = 1
 
 # initial web3 setup
 # web3 = Web3(Web3.IPCProvider('/home/chinmay/.ethereum/net2020/geth.ipc'))
-web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc'))
-# web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
+# web3 = Web3(Web3.IPCProvider('/home/rakshith/.ethereum/net2020/geth.ipc'))
+web3 = Web3(Web3.IPCProvider('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/geth.ipc'))
 
 account_1 = web3.eth.accounts[0]
-# web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
-web3.geth.personal.unlock_account(web3.eth.accounts[0], "1234")
+web3.geth.personal.unlock_account(web3.eth.accounts[0], "pass1")
+# web3.geth.personal.unlock_account(web3.eth.accounts[0], "1234")
 
 # with open('/home/chinmay/.ethereum/net2020/keystore/UTC--2020-12-05T08-59-15.727899516Z--00b74e369f5c7c6edd99ba302b1b309cbe8a46ac') as keyfile:
-with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile:
-# with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
+# with open('/home/rakshith/.ethereum/net2020/keystore/UTC--2020-12-07T22-27-05.479330396Z--4445f43ab37a872ab5204cf878fc3d32d18ae26c') as keyfile:
+with open('/home/radha/Documents/ucsb/fall20/291d/project/private-ethereum/net2020/keystore/UTC--2020-11-29T02-40-28.577278542Z--34b45153f30f346ebe99c8db91c38d67ecf535da') as keyfile:
     encrypted_key = keyfile.read()
-    # bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
-    bc_key = web3.eth.account.decrypt(encrypted_key, '1234')
+    bc_key = web3.eth.account.decrypt(encrypted_key, 'pass1')
+    # bc_key = web3.eth.account.decrypt(encrypted_key, '1234')
 
 
 # script to turn-on mining --  participant.py should be run after connecting peers manually using enode
@@ -55,7 +55,7 @@ web3.geth.miner.start(1)
 
 print("Mining started")
 
-while web3.eth.blockNumber < start_block+4:
+while web3.eth.blockNumber < start_block:
     continue
 
 #phase 0: blocks 1-100 -- publish public key
@@ -155,6 +155,7 @@ if debug:
 # phase 2 -- blocks 701 - 1000 -- voting
 vote = int(input("Enter contestant_id to vote for: ")) # here, we dont need a timeout because if a voter takes more time it is her loss
 
+#IF NO CONTESTANTS SKIP THIS PHASE
 
 if anonymous:
     # send encrypted votes
@@ -179,7 +180,7 @@ if debug:
 
 if contestant and anonymous:
     # update N, voters; gather legit votes; construct proof
-    discard_factors, legit_factors, del_list = find_votes(web3, private_key, inter_phase_1_end + 1, phase_2_end)
+    discard_factors, legit_factors, del_list = find_votes(web3, public_keys, private_key, inter_phase_1_end + 1, phase_2_end)
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
     print(N, voters)
     list_factors = []
@@ -202,12 +203,12 @@ if contestant and anonymous:
 
 elif anonymous:
     # Voter in anonymous protocol: update N, voters
-    discard_factors, del_list = non_encrypted_factors(web3,private_key, inter_phase_1_end + 1, phase_2_end )
+    discard_factors, del_list = non_encrypted_factors(web3,public_keys, private_key, inter_phase_1_end + 1, phase_2_end )
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
 
 else:
     # candidate or voter in non-anonymous
-    vote_count = get_vote_count(web3, contestants, inter_phase_1_end + 1, phase_2_end)
+    vote_count = get_vote_count(web3, public_keys, contestants, inter_phase_1_end + 1, phase_2_end)
     if contestant and vote_count[my_id] > threshold:
         message = str.encode("04|Winner")
         sendTransaction(web3, account_1, message, bc_key)
@@ -227,7 +228,7 @@ while web3.eth.blockNumber < inter_phase_2_end:
 if anonymous:
     # honest agents should verify proofs and put true or false on the blockchain
     # pass
-    proofs = get_proofs(web3, contestants, phase_2_end+1, inter_phase_2_end)
+    proofs = get_proofs(web3, public_keys, contestants, phase_2_end+1, inter_phase_2_end)
     for proof in proofs:
         with open('pysnark_log', "w") as f:
             f.write(proof[0])
@@ -235,6 +236,7 @@ if anonymous:
             f.write(proof[1])
         with open('pysnark_pubvals', "w") as f:
             f.write(proof[2])
+            # f.write(str(N) + '\n' + )
         subprocess.call(["python3", "verify.py"])
 
 else:
