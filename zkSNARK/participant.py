@@ -13,7 +13,7 @@ runtimes = {}
 msg_size = 0
 r_msg_size = 0
 #constant parameters
-start_block = 1975
+start_block = 2870
 offset = 10
 phase_0_end = start_block + 2*offset
 inter_phase_0_end = start_block + 4*offset
@@ -25,13 +25,13 @@ inter_phase_2_end = start_block + 12*offset    #1400 is an in-between milestone?
 phase_3_end = start_block + 14*offset
 
 # protocol flags
-anonymous = True
+anonymous = False
 debug = True
-contestant = False
+contestant = True
 
 # dict of public keys of all participants and winning threshold
 public_keys = {}
-threshold = 1
+threshold = 0
 
 prog_start_time = time.process_time()
 start_time = time.process_time()
@@ -198,7 +198,7 @@ if debug:
 start_time = time.process_time()
 if contestant and anonymous:
     # update N, voters; gather legit votes; construct proof
-    discard_factors, legit_factors, del_list, r_msg_size = find_votes(web3, public_keys, private_key, inter_phase_1_end + 1, phase_2_end, r_msg_size)
+    discard_factors, legit_factors, del_list, r_msg_size = find_votes(web3, public_keys, private_key, inter_phase_1_end + 1, phase_2_end, anonymous, r_msg_size)
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
     print(N, voters)
     list_factors = []
@@ -222,12 +222,13 @@ if contestant and anonymous:
 
 elif anonymous:
     # Voter in anonymous protocol: update N, voters
-    discard_factors, del_list, r_msg_size = non_encrypted_factors(web3,public_keys, private_key, inter_phase_1_end + 1, phase_2_end, r_msg_size)
+    discard_factors, del_list, r_msg_size = non_encrypted_factors(web3,public_keys, private_key, inter_phase_1_end + 1, phase_2_end, anonymous, r_msg_size)
     N, voters = updated_voters(N, voters, discard_factors, participants_ni, del_list)
 
 else:
     # candidate or voter in non-anonymous
     vote_count, r_msg_size = get_vote_count(web3, public_keys, contestants, inter_phase_1_end + 1, phase_2_end, r_msg_size)
+    print(vote_count)
     if contestant and vote_count[my_id] > threshold:
         message = str.encode("04|Winner")
         _, msg_size = sendTransaction(web3, account_1, message, bc_key, msg_size)
@@ -248,7 +249,7 @@ start_time = time.process_time()
 if anonymous:
     # honest agents should verify proofs and put true or false on the blockchain
     # pass
-    proofs, r_msg_size = get_proofs(web3, public_keys, contestants, phase_2_end+1, inter_phase_2_end, r_msg_size)
+    proofs, r_msg_size = get_proofs(web3, public_keys, contestants, phase_2_end+1, inter_phase_2_end, anonymous, r_msg_size)
     for proof in proofs:
         with open('pysnark_log', "w") as f:
             f.write(proof[0])
@@ -265,12 +266,13 @@ else:
     winners, r_msg_size = get_winners(web3, contestants, phase_2_end+1, inter_phase_2_end, r_msg_size)
     non_winners = set()
     for claimed_winner in winners:
-        if vote_count[claimed_winner] < threshold:
+        if vote_count[contestants[claimed_winner]] < threshold:
             non_winners.add(claimed_winner)
     for non_winner in non_winners:
         message = str.encode("False|{}".format(non_winner))
         _, msg_size = sendTransaction(web3, account_1, message, bc_key, msg_size)
 
+        print('final message: ', message)
 runtimes['4'] = time.process_time() - start_time
 runtimes['total'] = time.process_time() - prog_start_time
 
