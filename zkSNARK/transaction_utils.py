@@ -58,6 +58,7 @@ def get_public_keys(web3, start, end):
                 # need to find sender of the transaction here (better way of doing this is welcome)
                 # print(transaction.input)
                 message = hex_to_string(transaction.input)
+                print("Get public keys message: ", message)
                 sender_id = transaction['from']
                 #FIGURE OUT BYTESTRING BIT
                 if message.decode().split('|')[0] == "00":
@@ -97,7 +98,7 @@ def list_voters(web3, start, end):
 
 # find sender of the message by checking signature
 def find_sender(message, transaction, public_keys):
-    message, signature = message.strip().split("--")
+    message, signature = message.strip().split(str.encode("--"))
     sender_id = transaction['from']
     public_key = public_keys[sender_id]
     if rsa_verify(message, signature, public_key):
