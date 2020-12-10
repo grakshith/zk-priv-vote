@@ -29,7 +29,7 @@ def sendTransaction(web3, account, message, bc_key, private_key = None):
         signature = rsa_sign(message, private_key)
     # message = message + "--"  + signature # change signature format
     if private_key:
-        message = message #+ str.encode("--") + signature
+        message = message + str.encode("--") + signature
     else:
         message = message
     tx = {
@@ -96,13 +96,13 @@ def list_voters(web3, start, end):
 
 
 # find sender of the message by checking signature
-def find_sender(message, public_keys):
+def find_sender(message, transaction, public_keys):
     message, signature = message.strip().split("--")
-    sender_id = None
-    for participant in public_keys:
-        if rsa_verify(message, signature, public_keys[participant]):
-            sender_id = participant
-            return message, sender_id
+    sender_id = transaction['from']
+    public_key = public_keys[sender_id]
+    if rsa_verify(message, signature, public_key):
+        return message
+    return None
 
 
 def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous):
@@ -120,7 +120,9 @@ def gather_contestants_participants_ni(web3, public_keys, start, end, anonymous)
                 transaction = web3.eth.getTransaction(block_hash)
                 # need to find sender of the transaction here (better way of doing this is welcome)
                 message = hex_to_string(transaction.input)
-                # message, sender_id = find_sender(message, public_keys)
+                message = find_sender(message, transaction, public_keys)
+                if(not message):
+                    continue
                 #ADD IN VERIFICATION
                 sender_id = transaction['from']
 
@@ -152,6 +154,9 @@ def non_encrypted_factors(web3, private_key, start, end):
                 block_hash = web3.eth.getBlock(block_number).transactions[i]
                 transaction = web3.eth.getTransaction(block_hash)
                 message = hex_to_string(transaction.input)
+                message = find_sender(message, transaction, public_keys)
+                if(not message):
+                    continue
                 if transaction['from'] in legit_votes:
                     #Repeated vote, record the participant
                     del_list.append(transaction['from'])
@@ -197,6 +202,9 @@ def find_votes(web3, private_key, start, end):
                 block_hash = web3.eth.getBlock(block_number).transactions[i]
                 transaction = web3.eth.getTransaction(block_hash)
                 message = hex_to_string(transaction.input)
+                message = find_sender(message, transaction, public_keys)
+                if(not message):
+                    continue
                 if transaction['from'] in legit_factors:
                     #Repeated vote, record the participant
                     del_list.append(transaction['from'])
@@ -286,6 +294,9 @@ def get_proofs(web3, contestants, start, end):
                 block_hash = web3.eth.getBlock(block_number).transactions[i]
                 transaction = web3.eth.getTransaction(block_hash)
                 message = hex_to_string(transaction.input)
+                message = find_sender(message, transaction, public_keys)
+                if(not message):
+                    continue
                 if message.split(str.encode("|"))[0].decode() == "04":
                     # record winner
                     message = message.decode()

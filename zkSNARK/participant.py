@@ -8,7 +8,7 @@ from crypto import *
 # from proof_function import *
 
 #constant parameters
-start_block = 10
+start_block = 1
 offset = 10
 phase_0_end = start_block + 2*offset
 inter_phase_0_end = start_block + 4*offset
