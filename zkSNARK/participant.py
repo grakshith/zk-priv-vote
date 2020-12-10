@@ -13,7 +13,7 @@ runtimes = {}
 msg_size = 0
 r_msg_size = 0
 #constant parameters
-start_block = 685
+start_block = 1975
 offset = 10
 phase_0_end = start_block + 2*offset
 inter_phase_0_end = start_block + 4*offset
@@ -27,7 +27,7 @@ phase_3_end = start_block + 14*offset
 # protocol flags
 anonymous = True
 debug = True
-contestant = True
+contestant = False
 
 # dict of public keys of all participants and winning threshold
 public_keys = {}

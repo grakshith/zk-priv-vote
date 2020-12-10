@@ -171,10 +171,10 @@ def non_encrypted_factors(web3, public_keys, private_key, start, end, r_msg_size
                     del_list.append(transaction['from'])
                 # elif rsa_decrypt(message, private_key).split(str.encode("|"))[0] == "03":
                 #     pass
-                elif message.split(str.encode('|'))[0].decode() == "03":
-                    message = message.strip().split(str.encode('|'))
-                    non_encrypted_factors.add(int(str.decode(message[-1])))
-                    non_encrypted_factors.add(int(str.decode(message[-2])))
+                # elif message.split(str.encode('|'))[0].decode() == "03":
+                #     message = message.strip().split(str.encode('|'))
+                #     non_encrypted_factors.add(int(str.decode(message[-1])))
+                #     non_encrypted_factors.add(int(str.decode(message[-2])))
                 legit_votes.add(transaction['from'])
         block_number+= 1
 
