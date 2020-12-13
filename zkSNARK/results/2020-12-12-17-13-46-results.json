@@ -1,0 +1,82 @@
+{
+    "results": [
+        {
+            "name": "rsa_enc/10",
+            "iterations": 1000,
+            "workload_size": 10,
+            "size_blowup": 256,
+            "mean": 43.22809900000077,
+            "mean_per_byte": 4.322809900000077,
+            "median": 39.01449999997586,
+            "stddev": 11.020322884183676
+        },
+        {
+            "name": "rsa_dec/10",
+            "iterations": 1000,
+            "workload_size": 10,
+            "size_blowup": 10,
+            "mean": 657.6022760000019,
+            "mean_per_byte": 65.76022760000019,
+            "median": 613.5594999999716,
+            "stddev": 146.17196524408726
+        },
+        {
+            "name": "rsa_sign/10",
+            "iterations": 1000,
+            "workload_size": 10,
+            "size_blowup": 256,
+            "mean": 670.8352260000037,
+            "mean_per_byte": 67.08352260000036,
+            "median": 630.1879999999205,
+            "stddev": 133.69294243504874
+        },
+        {
+            "name": "rsa_verify/10",
+            "iterations": 1000,
+            "workload_size": 10,
+            "mean": 47.75655999999473,
+            "mean_per_byte": 4.775655999999473,
+            "median": 47.06549999988763,
+            "stddev": 3.898720913983819
+        },
+        {
+            "name": "rsa_enc/100",
+            "iterations": 1000,
+            "workload_size": 100,
+            "size_blowup": 256,
+            "mean": 39.3283560000004,
+            "mean_per_byte": 0.393283560000004,
+            "median": 38.600500000041116,
+            "stddev": 4.112706809945873
+        },
+        {
+            "name": "rsa_dec/100",
+            "iterations": 1000,
+            "workload_size": 100,
+            "size_blowup": 100,
+            "mean": 629.9077020000063,
+            "mean_per_byte": 6.299077020000063,
+            "median": 606.6885000000077,
+            "stddev": 79.13046812803019
+        },
+        {
+            "name": "rsa_sign/100",
+            "iterations": 1000,
+            "workload_size": 100,
+            "size_blowup": 256,
+            "mean": 727.3058130000028,
+            "mean_per_byte": 7.273058130000027,
+            "median": 703.5459999999994,
+            "stddev": 89.57900456835573
+        },
+        {
+            "name": "rsa_verify/100",
+            "iterations": 1000,
+            "workload_size": 100,
+            "mean": 48.96782999999294,
+            "mean_per_byte": 0.48967829999992935,
+            "median": 47.56349999990306,
+            "stddev": 5.225615494302495
+        }
+    ]
+}
