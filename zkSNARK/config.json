@@ -1,0 +1,68 @@
+{
+    "experiments": [
+        {
+            "name": "rsa_enc/10",
+            "iterations": 1000,
+            "function": "rsa_encrypt",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 10,
+            "params": ["BM_WORKLOAD_STR", "RSA_PUB_KEY"]
+        },
+        {
+            "name": "rsa_dec/10",
+            "iterations": 1000,
+            "function": "rsa_decrypt",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 10,
+            "params": ["BM_WORKLOAD_STR", "RSA_PRIV_KEY"]
+        },
+        {
+            "name": "rsa_sign/10",
+            "iterations": 1000,
+            "function": "rsa_sign",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 10,
+            "params": ["BM_WORKLOAD_BYTE", "RSA_SIGN_KEY"]
+        },
+        {
+            "name": "rsa_verify/10",
+            "iterations": 1000,
+            "function": "rsa_verify",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 10,
+            "params": ["BM_WORKLOAD_BYTE", "BM_WORKLOAD_BYTE", "RSA_VERIFY_KEY"]
+        },
+        {
+            "name": "rsa_enc/100",
+            "iterations": 1000,
+            "function": "rsa_encrypt",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 100,
+            "params": ["BM_WORKLOAD_STR", "RSA_PUB_KEY"]
+        },
+        {
+            "name": "rsa_dec/100",
+            "iterations": 1000,
+            "function": "rsa_decrypt",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 100,
+            "params": ["BM_WORKLOAD_STR", "RSA_PRIV_KEY"]
+        },
+        {
+            "name": "rsa_sign/100",
+            "iterations": 1000,
+            "function": "rsa_sign",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 100,
+            "params": ["BM_WORKLOAD_BYTE", "RSA_SIGN_KEY"]
+        },
+        {
+            "name": "rsa_verify/100",
+            "iterations": 1000,
+            "function": "rsa_verify",
+            "stat_measures": ["mean", "median", "stddev"],
+            "workload_size": 100,
+            "params": ["BM_WORKLOAD_BYTE", "BM_WORKLOAD_BYTE", "RSA_VERIFY_KEY"]
+        }
+    ]
+}
